@@ -187,6 +187,6 @@ public class GridObject : RectGameObjComponent
 
    public void OnCollidedWithSnakeHead(SnakeSegment head)
    {
-
+      Debug.Log("snake collision!");
    }
 }

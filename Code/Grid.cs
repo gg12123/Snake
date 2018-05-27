@@ -15,8 +15,8 @@ public class Grid : MonoBehaviour
 
    private GridSquare[,] m_Squares;
 
-   public int XCount { get; private set; }
-   public int YCount { get; private set; }
+   public int XCount { get { return m_NumSquaresAlong; } }
+   public int YCount { get { return m_NumSquaresUp; } }
 
    private LinkedList<GridSquare> m_OccupiedSquares;
    private LinkedList<GridSquare> m_FreeSquares;
@@ -61,6 +61,8 @@ public class Grid : MonoBehaviour
       if (height < screenHeight)
          Debug.LogError("Grid not big enough in Y");
 
+      m_Squares = new GridSquare[m_NumSquaresAlong, m_NumSquaresUp];
+
       for (int i = 0; i < m_NumSquaresAlong; i++)
       {
          for (int j = 0; j < m_NumSquaresUp; j++)
@@ -75,6 +77,7 @@ public class Grid : MonoBehaviour
 
             m_FreeSquares.AddFirst(square);
             square.Init(i, j, m_FreeSquares.First);
+            square.Rect.Init(uL, lR);
             m_Squares[i, j] = square;
          }
       }
@@ -88,7 +91,7 @@ public class Grid : MonoBehaviour
 
    public void OnSquareBecomesOccupied(GridSquare square)
    {
-      m_OccupiedSquares.AddFirst(square.Node);
       m_FreeSquares.Remove(square.Node);
+      m_OccupiedSquares.AddFirst(square.Node);
    }
 }

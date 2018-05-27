@@ -21,7 +21,7 @@ public class SnakeSegmentPool : MonoBehaviour
    {
       for (int i = 0; i < m_StartNumSegments; i++)
       {
-         ReturnSegment((Instantiate(m_SegmentPrefab) as GameObject).GetComponent<SnakeSegment>());
+         ReturnSegment((Instantiate(m_SegmentPrefab, transform) as GameObject).GetComponent<SnakeSegment>());
       }
    }
 

@@ -9,6 +9,7 @@ public class RectGameObjComponent : MonoBehaviour
    private void Awake()
    {
       Rect = GetComponent<Rect>();
+      OnAwake();
    }
 
    protected virtual void OnAwake() { }

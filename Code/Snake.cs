@@ -19,6 +19,7 @@ public class Snake : MonoBehaviour
    private ISnakeController m_Controller;
 
    public SnakeSegment Head { get { return m_Segments.First.Value; } }
+   public float Width { get { return m_Width; } }
 
    // Use this for initialization
    void Awake ()
@@ -37,6 +38,7 @@ public class Snake : MonoBehaviour
       firstSegment.Rect.Init(Vector2.zero, m_Width * 2.0f * Rect.VectorDirection(Direction.Right) + m_Width * Rect.VectorDirection(Direction.Down));
       InitFirstSegmentGridObject(firstSegment);
       firstSegment.Init(Direction.Left);
+      m_Segments.AddFirst(firstSegment);
    }
 
    private void InitFirstSegmentGridObject(SnakeSegment firstSegment)
@@ -61,7 +63,7 @@ public class Snake : MonoBehaviour
                   xMax = x;
 
                if (y < yMin)
-                  xMin = x;
+                  yMin = y;
 
                if (y > yMax)
                   yMax = y;
@@ -85,10 +87,15 @@ public class Snake : MonoBehaviour
       HandleShrinking(movement);
    }
 
+   private Direction GetNextDirection()
+   {
+      return ((m_Segments.Count == 1) ? Head.Direction : m_Segments.Last.Previous.Value.Direction);
+   }
+
    private void HandleShrinking(float movement)
    {
       float amountShrunk;
-      while (!m_Segments.Last.Value.Shrink(movement, out amountShrunk))
+      while (!m_Segments.Last.Value.Shrink(GetNextDirection(), movement, out amountShrunk))
       {
          m_SegmentPool.ReturnSegment(m_Segments.Last.Value);
          m_Segments.RemoveLast();

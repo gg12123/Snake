@@ -24,7 +24,7 @@ public class CollisionDetector : MonoBehaviour
          for (int i = 0; i < square.ObjectCount; i++)
          {
             var obj = square.ObjectAt(i);
-            if ((obj != head.GridObj) && obj.Rect.IsOverlappingWith(head.Rect))
+            if ((obj != head.GridObj) && obj.Rect.IsOverlappingWith(head.Rect, 0.01f * m_Snake.Width))
             {
                obj.OnCollidedWithSnakeHead(head);
             }

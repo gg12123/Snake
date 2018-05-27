@@ -14,8 +14,9 @@ public class GridSquare : RectGameObjComponent
 
    public int ObjectCount { get { return m_Objects.Count; } }
 
-   private void Awake()
+   protected override void OnAwake()
    {
+      m_Objects = new List<GridObject>();
       m_Grid = GetComponentInParent<Grid>();
    }
 
