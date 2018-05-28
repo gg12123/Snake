@@ -18,30 +18,33 @@ public class Snake : MonoBehaviour
    private float m_Speed = 1.0f;
    [SerializeField]
    private float m_Width = 1.0f;
-
+   [SerializeField]
    private SnakeSegmentPool m_SegmentPool;
+
    private LinkedList<SnakeSegment> m_Segments;
    private ISnakeController m_Controller;
    private SnakeShrinkFilter m_ShrinkFilter;
 
    public SnakeSegment Head { get { return m_Segments.First.Value; } }
+   public SnakeSegment Back { get { return m_Segments.Last.Value; } }
    public float Width { get { return m_Width; } }
 
    // Use this for initialization
    void Awake ()
    {
-      m_SegmentPool = GetComponent<SnakeSegmentPool>();
       m_Segments = new LinkedList<SnakeSegment>();
       m_Controller = GetComponent<ISnakeController>();
 
       m_ShrinkFilter = new SnakeShrinkFilter();
+
+      m_SegmentPool.Init(transform);
 
       enabled = false;
    }
 
    private void Start()
    {
-      var firstSegment = m_SegmentPool.GetSegment();
+      var firstSegment = m_SegmentPool.GetObject();
 
       firstSegment.Rect.Init(Vector2.zero, m_Width * 2.0f * Rect.VectorDirection(Direction.Right) + m_Width * Rect.VectorDirection(Direction.Down));
       InitFirstSegmentGridObject(firstSegment);
@@ -114,7 +117,7 @@ public class Snake : MonoBehaviour
       HandleShrinking(m_ShrinkFilter.Filter(movement));
    }
 
-   private Direction GetNextDirection()
+   private Direction GetNextShrinkDirection()
    {
       return ((m_Segments.Count == 1) ? Head.Direction : m_Segments.Last.Previous.Value.Direction);
    }
@@ -122,9 +125,9 @@ public class Snake : MonoBehaviour
    private void HandleShrinking(float movement)
    {
       float amountShrunk;
-      while (!m_Segments.Last.Value.Shrink(GetNextDirection(), movement, out amountShrunk))
+      while (!Back.Shrink(GetNextShrinkDirection(), movement, out amountShrunk))
       {
-         m_SegmentPool.ReturnSegment(m_Segments.Last.Value);
+         m_SegmentPool.ReturnObject(Back);
          m_Segments.RemoveLast();
 
          movement -= amountShrunk;
@@ -188,7 +191,7 @@ public class Snake : MonoBehaviour
 
    private SnakeSegment HandleDirChangeRightToDown(SnakeSegment currHead)
    {
-      var newHead = m_SegmentPool.GetSegment();
+      var newHead = m_SegmentPool.GetObject();
 
       newHead.Rect.Init(currHead.Rect.LowerRight + m_Width * Rect.VectorDirection(Direction.Left), currHead.Rect.LowerRight);
       newHead.GridObj.Init(SquareOnRectOuter(currHead.GridObj.LowerRight, newHead.Rect, Direction.Left), currHead.GridObj.LowerRight);
@@ -198,7 +201,7 @@ public class Snake : MonoBehaviour
 
    private SnakeSegment HandleDirChangeRightToUp(SnakeSegment currHead)
    {
-      var newHead = m_SegmentPool.GetSegment();
+      var newHead = m_SegmentPool.GetObject();
 
       newHead.Rect.Init(currHead.Rect.UpperRight + m_Width * Rect.VectorDirection(Direction.Left), currHead.Rect.UpperRight);
       newHead.GridObj.Init(SquareOnRectOuter(currHead.GridObj.UpperRight, newHead.Rect, Direction.Left), currHead.GridObj.UpperRight);
@@ -208,7 +211,7 @@ public class Snake : MonoBehaviour
 
    private SnakeSegment HandleDirChangeLeftToDown(SnakeSegment currHead)
    {
-      var newHead = m_SegmentPool.GetSegment();
+      var newHead = m_SegmentPool.GetObject();
 
       newHead.Rect.Init(currHead.Rect.LowerLeft, currHead.Rect.LowerLeft + m_Width * Rect.VectorDirection(Direction.Right));
       newHead.GridObj.Init(currHead.GridObj.LowerLeft, SquareOnRectOuter(currHead.GridObj.LowerLeft, newHead.Rect, Direction.Right));
@@ -218,7 +221,7 @@ public class Snake : MonoBehaviour
 
    private SnakeSegment HandleDirChangeLeftToUp(SnakeSegment currHead)
    {
-      var newHead = m_SegmentPool.GetSegment();
+      var newHead = m_SegmentPool.GetObject();
 
       newHead.Rect.Init(currHead.Rect.UpperLeft, currHead.Rect.UpperLeft + m_Width * Rect.VectorDirection(Direction.Right));
       newHead.GridObj.Init(currHead.GridObj.UpperLeft, SquareOnRectOuter(currHead.GridObj.UpperLeft, newHead.Rect, Direction.Right));
@@ -228,7 +231,7 @@ public class Snake : MonoBehaviour
 
    private SnakeSegment HandleDirChangeUpToLeft(SnakeSegment currHead)
    {
-      var newHead = m_SegmentPool.GetSegment();
+      var newHead = m_SegmentPool.GetObject();
 
       newHead.Rect.Init(currHead.Rect.UpperLeft, currHead.Rect.UpperLeft + m_Width * Rect.VectorDirection(Direction.Down));
       newHead.GridObj.Init(currHead.GridObj.UpperLeft, SquareOnRectOuter(currHead.GridObj.UpperLeft, newHead.Rect, Direction.Down));
@@ -238,7 +241,7 @@ public class Snake : MonoBehaviour
 
    private SnakeSegment HandleDirChangeUpToRight(SnakeSegment currHead)
    {
-      var newHead = m_SegmentPool.GetSegment();
+      var newHead = m_SegmentPool.GetObject();
 
       newHead.Rect.Init(currHead.Rect.UpperRight, currHead.Rect.UpperRight + m_Width * Rect.VectorDirection(Direction.Down));
       newHead.GridObj.Init(currHead.GridObj.UpperRight, SquareOnRectOuter(currHead.GridObj.UpperRight, newHead.Rect, Direction.Down));
@@ -248,7 +251,7 @@ public class Snake : MonoBehaviour
 
    private SnakeSegment HandleDirChangeDownToRight(SnakeSegment currHead)
    {
-      var newHead = m_SegmentPool.GetSegment();
+      var newHead = m_SegmentPool.GetObject();
 
       newHead.Rect.Init(currHead.Rect.LowerRight + m_Width * Rect.VectorDirection(Direction.Up), currHead.Rect.LowerRight);
       newHead.GridObj.Init(SquareOnRectOuter(currHead.GridObj.LowerRight, newHead.Rect, Direction.Up), currHead.GridObj.LowerRight);
@@ -258,7 +261,7 @@ public class Snake : MonoBehaviour
 
    private SnakeSegment HandleDirChangeDownToLeft(SnakeSegment currHead)
    {
-      var newHead = m_SegmentPool.GetSegment();
+      var newHead = m_SegmentPool.GetObject();
 
       newHead.Rect.Init(currHead.Rect.LowerLeft + m_Width * Rect.VectorDirection(Direction.Up), currHead.Rect.LowerLeft);
       newHead.GridObj.Init(SquareOnRectOuter(currHead.GridObj.LowerLeft, newHead.Rect, Direction.Up), currHead.GridObj.LowerLeft);
