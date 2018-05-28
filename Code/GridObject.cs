@@ -2,13 +2,20 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GridObject : RectGameObjComponent
+public interface IOnCollidedWithSnakeHead
+{
+   void OnCollidedWithSnakeHead(SnakeSegment head);
+}
+
+public class GridObject : RectObjectComponent
 {
    private GridSquare m_UL;
    private GridSquare m_LR;
 
    private GridSquareLineEnumerator m_Enumerator;
    private GridSquareSquareEnumerator m_SquareEnumerator;
+
+   private IOnCollidedWithSnakeHead[] m_CollisionListeners;
 
    public GridSquare UpperLeft { get { return m_UL; } }
    public GridSquare LowerRight { get { return m_LR; } }
@@ -19,6 +26,7 @@ public class GridObject : RectGameObjComponent
    {
       m_Enumerator = new GridSquareLineEnumerator();
       m_SquareEnumerator = new GridSquareSquareEnumerator();
+      m_CollisionListeners = GetComponents<IOnCollidedWithSnakeHead>();
    }
 
    public void Init(GridSquare uL, GridSquare lR)
@@ -187,6 +195,7 @@ public class GridObject : RectGameObjComponent
 
    public void OnCollidedWithSnakeHead(SnakeSegment head)
    {
-      Debug.Log("snake collision!");
+      for (int i = 0; i < m_CollisionListeners.Length; i++)
+         m_CollisionListeners[i].OnCollidedWithSnakeHead(head);
    }
 }

@@ -7,6 +7,11 @@ public interface ISnakeController
    bool ChangeDirection(out Direction dir);
 }
 
+public interface IOnSnakeStartsMoving
+{
+   void OnSnakeStartsMoving();
+}
+
 public class Snake : MonoBehaviour
 {
    [SerializeField]
@@ -17,6 +22,7 @@ public class Snake : MonoBehaviour
    private SnakeSegmentPool m_SegmentPool;
    private LinkedList<SnakeSegment> m_Segments;
    private ISnakeController m_Controller;
+   private SnakeShrinkFilter m_ShrinkFilter;
 
    public SnakeSegment Head { get { return m_Segments.First.Value; } }
    public float Width { get { return m_Width; } }
@@ -27,6 +33,8 @@ public class Snake : MonoBehaviour
       m_SegmentPool = GetComponent<SnakeSegmentPool>();
       m_Segments = new LinkedList<SnakeSegment>();
       m_Controller = GetComponent<ISnakeController>();
+
+      m_ShrinkFilter = new SnakeShrinkFilter();
 
       enabled = false;
    }
@@ -39,6 +47,25 @@ public class Snake : MonoBehaviour
       InitFirstSegmentGridObject(firstSegment);
       firstSegment.Init(Direction.Left);
       m_Segments.AddFirst(firstSegment);
+
+      BroadcastStartMoving();
+   }
+
+   private void BroadcastStartMoving()
+   {
+      var listeners = GetComponentsInParent<IOnSnakeStartsMoving>();
+      foreach (var x in listeners)
+         x.OnSnakeStartsMoving();
+   }
+
+   public void Grow(float amount)
+   {
+      m_ShrinkFilter.Add(amount);
+   }
+
+   public void Die()
+   {
+      enabled = false;
    }
 
    private void InitFirstSegmentGridObject(SnakeSegment firstSegment)
@@ -84,7 +111,7 @@ public class Snake : MonoBehaviour
       float movement = Time.deltaTime * m_Speed;
 
       Head.Expand(movement);
-      HandleShrinking(movement);
+      HandleShrinking(m_ShrinkFilter.Filter(movement));
    }
 
    private Direction GetNextDirection()

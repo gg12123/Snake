@@ -2,9 +2,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GridSquare : RectGameObjComponent
+public class GridSquare : RectObjectComponent
 {
+   [SerializeField]
+   private Color m_FreeColour;
+   [SerializeField]
+   private Color m_OccupiedColour;
+
    private Grid m_Grid;
+   private SpriteRenderer m_Renderer;
    private List<GridObject> m_Objects;
 
    public LinkedListNode<GridSquare> Node { get; private set; }
@@ -18,6 +24,7 @@ public class GridSquare : RectGameObjComponent
    {
       m_Objects = new List<GridObject>();
       m_Grid = GetComponentInParent<Grid>();
+      m_Renderer = GetComponent<SpriteRenderer>();
    }
 
    public void Init(int xIndex, int yIndex, LinkedListNode<GridSquare> node)
@@ -26,6 +33,7 @@ public class GridSquare : RectGameObjComponent
       YIndex = yIndex;
 
       Node = node;
+      m_Renderer.color = m_FreeColour;
    }
 
    public GridObject ObjectAt(int i)
@@ -58,7 +66,7 @@ public class GridSquare : RectGameObjComponent
    public void Add(GridObject obj)
    {
       if (m_Objects.Count == 0)
-         m_Grid.OnSquareBecomesOccupied(this);
+         OnBecomeOccupied();
 
       m_Objects.Add(obj);
    }
@@ -68,6 +76,18 @@ public class GridSquare : RectGameObjComponent
       m_Objects.Remove(obj);
 
       if (m_Objects.Count == 0)
-         m_Grid.OnSquareBecomesFree(this);
+         OnBecomeFree();
+   }
+
+   private void OnBecomeOccupied()
+   {
+      m_Grid.OnSquareBecomesOccupied(this);
+      m_Renderer.color = m_OccupiedColour;
+   }
+
+   private void OnBecomeFree()
+   {
+      m_Grid.OnSquareBecomesFree(this);
+      m_Renderer.color = m_FreeColour;
    }
 }

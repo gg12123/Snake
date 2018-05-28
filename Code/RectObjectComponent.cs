@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class RectGameObjComponent : MonoBehaviour
+public class RectObjectComponent : MonoBehaviour
 {
    public Rect Rect { get; private set; }
 

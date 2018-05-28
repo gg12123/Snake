@@ -15,6 +15,7 @@ public class GridSquareSquareEnumerator : IMyEnumerator<GridSquare>
    {
       m_UL = uL;
       m_LR = lR;
+      Reset();
    }
 
    public GridSquare First()

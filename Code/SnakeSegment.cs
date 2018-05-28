@@ -2,17 +2,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SnakeSegment : RectGameObjComponent
+public class SnakeSegment : GridObjectComponent
 {
    private Snake m_Owner;
    private bool m_ReachedSquare;
 
-   public GridObject GridObj { get; private set; }
    public Direction Direction { get; private set; }
+   public Snake OwnerSnake { get { return m_Owner; } }
 
    protected override void OnAwake()
    {
-      GridObj = GetComponent<GridObject>();
+      base.OnAwake();
       m_Owner = GetComponentInParent<Snake>();
    }
 

@@ -1,8 +1,9 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CollisionDetector : MonoBehaviour
+public class CollisionDetector : MonoBehaviour, IOnSnakeStartsMoving
 {
    private Snake m_Snake;
 
@@ -10,6 +11,7 @@ public class CollisionDetector : MonoBehaviour
    void Awake ()
    {
       m_Snake = GetComponent<Snake>();
+      enabled = false;
    }
    
    // Update is called once per frame
@@ -30,5 +32,10 @@ public class CollisionDetector : MonoBehaviour
             }
          }
       }
+   }
+
+   public void OnSnakeStartsMoving()
+   {
+      enabled = true;
    }
 }
