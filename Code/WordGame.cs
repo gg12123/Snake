@@ -50,7 +50,6 @@ public class WordGame : MonoBehaviour, IGame
    {
       for (int i = 0; i < word.Length; i++)
       {
-         // TODO - optimise this so that is only loops over the squares once.
          var square = m_Grid.GetFreeSquare(UnityEngine.Random.Range(0, m_Grid.FreeSquareCount));
          var letter = m_LetterPool.GetObject();
 

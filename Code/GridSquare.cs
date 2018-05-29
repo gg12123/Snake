@@ -13,7 +13,7 @@ public class GridSquare : RectObjectComponent
    private SpriteRenderer m_Renderer;
    private List<GridObject> m_Objects;
 
-   public LinkedListNode<GridSquare> Node { get; private set; }
+   public ContainerPointer Node { get; private set; }
 
    public int XIndex { get; private set; }
    public int YIndex { get; private set; }
@@ -27,7 +27,7 @@ public class GridSquare : RectObjectComponent
       m_Renderer = GetComponent<SpriteRenderer>();
    }
 
-   public void Init(int xIndex, int yIndex, LinkedListNode<GridSquare> node)
+   public void Init(int xIndex, int yIndex, ContainerPointer node)
    {
       XIndex = xIndex;
       YIndex = yIndex;
@@ -81,13 +81,13 @@ public class GridSquare : RectObjectComponent
 
    private void OnBecomeOccupied()
    {
-      m_Grid.OnSquareBecomesOccupied(this);
+      Node = m_Grid.OnSquareBecomesOccupied(this);
       m_Renderer.color = m_OccupiedColour;
    }
 
    private void OnBecomeFree()
    {
-      m_Grid.OnSquareBecomesFree(this);
+      Node = m_Grid.OnSquareBecomesFree(this);
       m_Renderer.color = m_FreeColour;
    }
 }

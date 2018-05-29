@@ -17,8 +17,8 @@ public class Grid : MonoBehaviour
 
    private GridSquare[,] m_Squares;
 
-   private LinkedList<GridSquare> m_OccupiedSquares;
-   private LinkedList<GridSquare> m_FreeSquares;
+   private MyContainer<GridSquare> m_OccupiedSquares;
+   private MyContainer<GridSquare> m_FreeSquares;
 
    public int XCount { get { return m_XCount; } }
    public int YCount { get { return m_YCount; } }
@@ -36,8 +36,8 @@ public class Grid : MonoBehaviour
    // Use this for initialization
    void Awake ()
    {
-      m_OccupiedSquares = new LinkedList<GridSquare>();
-      m_FreeSquares = new LinkedList<GridSquare>();
+      m_OccupiedSquares = new MyContainer<GridSquare>(XCount * YCount);
+      m_FreeSquares = new MyContainer<GridSquare>(XCount * YCount);
       GenerateSquares();
    }
 
@@ -60,8 +60,8 @@ public class Grid : MonoBehaviour
 
             var square = (Instantiate(m_SquarePrefab, transform) as GameObject).GetComponent<GridSquare>();
 
-            m_FreeSquares.AddFirst(square);
-            square.Init(i, j, m_FreeSquares.First);
+            var p = m_FreeSquares.Add(square);
+            square.Init(i, j, p);
             square.Rect.Init(uL, lR);
             m_Squares[i, j] = square;
 
@@ -86,27 +86,20 @@ public class Grid : MonoBehaviour
       wall.SlotIntoSquare(square, 0.0f);
    }
 
-   public void OnSquareBecomesFree(GridSquare square)
+   public ContainerPointer OnSquareBecomesFree(GridSquare square)
    {
       m_OccupiedSquares.Remove(square.Node);
-      m_FreeSquares.AddFirst(square.Node);
+      return m_FreeSquares.Add(square);
    }
 
-   public void OnSquareBecomesOccupied(GridSquare square)
+   public ContainerPointer OnSquareBecomesOccupied(GridSquare square)
    {
       m_FreeSquares.Remove(square.Node);
-      m_OccupiedSquares.AddFirst(square.Node);
+      return m_OccupiedSquares.Add(square);
    }
 
    public GridSquare GetFreeSquare(int index)
    {
-      int i = 0;
-      var square = m_FreeSquares.First;
-      while (i < index)
-      {
-         square = square.Next;
-         i++;
-      }
-      return square.Value;
+      return m_FreeSquares[index];
    }
 }
