@@ -22,7 +22,18 @@ public class Face : IEnumerable<Edge>
 
    public void AddEdgeThatFormsSplitWithNext(Edge edge, List<Face> toBeSplit)
    {
-
+      if (m_FormsSplitWithNext1 == null)
+      {
+         m_FormsSplitWithNext1 = edge;
+      }
+      else if (m_FormsSplitWithNext2 == null)
+      {
+         m_FormsSplitWithNext2 = edge;
+      }
+      else
+      {
+         Debug.LogError("Face been given more than two edges that form split");
+      }
    }
 
    public void ClearOwnerShape()
