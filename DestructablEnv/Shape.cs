@@ -12,6 +12,14 @@ public class Shape : MonoBehaviour
    private ShapePool m_ShapePool;
    private FaceMeshPool m_MeshPool;
 
+   private void Awake()
+   {
+      EdgePoints = new List<Vector3>();
+      EdgePairs = new List<EdgePair>();
+      Points = new List<Vector3>();
+      Faces = new List<Face>();
+   }
+
    private Vector3 CalculateCentre(List<EdgePair> pairs)
    {
       Vector3 centre = Vector3.zero;

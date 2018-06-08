@@ -16,6 +16,40 @@ public class EdgePair
       Edge2 = new Edge(this, edge2Face);
    }
 
+   public ShapePoint GetStart(Edge getter)
+   {
+      if (getter == Edge1)
+      {
+         return m_StartFor1;
+      }
+      else if (getter == Edge2)
+      {
+         return m_EndFor1;
+      }
+      else
+      {
+         Debug.LogError("Unkown edge trying to get on pair");
+         return null;
+      }
+   }
+
+   public ShapePoint GetEnd(Edge getter)
+   {
+      if (getter == Edge1)
+      {
+         return m_EndFor1;
+      }
+      else if (getter == Edge2)
+      {
+         return m_StartFor1;
+      }
+      else
+      {
+         Debug.LogError("Unkown edge trying to get on pair");
+         return null;
+      }
+   }
+
    public void SetStart(Edge setter, ShapePoint val)
    {
       if (setter == Edge1)

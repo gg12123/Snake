@@ -8,7 +8,7 @@ public class Pool<T> where T : MonoBehaviour
    [SerializeField]
    private GameObject m_Prefab;
    [SerializeField]
-   private int m_StartNumSegments = 10;
+   private int m_StartNumObjects = 10;
 
    private Transform m_Parent;
    private Stack<T> m_Objects;
@@ -22,7 +22,7 @@ public class Pool<T> where T : MonoBehaviour
 
    private void GenerateObjects()
    {
-      for (int i = 0; i < m_StartNumSegments; i++)
+      for (int i = 0; i < m_StartNumObjects; i++)
       {
          ReturnObject((GameObject.Instantiate(m_Prefab, m_Parent) as GameObject).GetComponent<T>());
       }

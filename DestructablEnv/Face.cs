@@ -14,6 +14,13 @@ public class Face : IEnumerable<Edge>
 
    private Edge m_Head;
 
+   private List<Vector3> m_Points;
+
+   public Face()
+   {
+      m_Points = new List<Vector3>();
+   }
+
    public void Init(Edge head, int numPoints)
    {
       m_Head = head;
@@ -150,7 +157,10 @@ public class Face : IEnumerable<Edge>
          m_Mesh.transform.parent = m_Owner.transform;
       }
 
-      // set the points and cache them here
+      foreach (var e in this)
+         m_Points.Add(e.End.Point);
+
+      m_Mesh.SetVerts(m_Points);
    }
 
    public IEnumerator<Edge> GetEnumerator()
