@@ -102,16 +102,16 @@ public class EdgePair
       return 0.5f * (m_StartFor1.Point + m_EndFor1.Point);
    }
 
-   public void OnClippingFinished(List<Vector3> edgePoints, List<Vector3> points, Vector3 centre, Shape newOwner, List<Face> newOwnersFaces)
+   public void OnClippingFinished(Vector3 centre, Shape newOwner)
    {
-      Edge1.OwnerFace.OnNewOwner(newOwner, newOwnersFaces);
-      Edge2.OwnerFace.OnNewOwner(newOwner, newOwnersFaces);
+      Edge1.OwnerFace.OnNewOwner(newOwner);
+      Edge2.OwnerFace.OnNewOwner(newOwner);
 
-      m_StartFor1.CentreAndAdd(points, centre);
-      m_EndFor1.CentreAndAdd(points, centre);
+      m_StartFor1.CentreAndAdd(newOwner.Points, centre);
+      m_EndFor1.CentreAndAdd(newOwner.Points, centre);
 
-      edgePoints.Add(m_EndFor1.Point);
-      edgePoints.Add(m_StartFor1.Point);
+      newOwner.EdgePoints.Add(m_EndFor1.Point);
+      newOwner.EdgePoints.Add(m_StartFor1.Point);
    }
 
    private void OnClip()

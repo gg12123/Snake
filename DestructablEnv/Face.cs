@@ -8,6 +8,7 @@ public class Face : IEnumerable<Edge>
    private Shape m_Owner;
    private FaceMesh m_Mesh;
    private int m_NumPoints;
+   private Vector3 m_Normal;
 
    private Edge m_FormsSplitWithNext1;
    private Edge m_FormsSplitWithNext2;
@@ -21,10 +22,11 @@ public class Face : IEnumerable<Edge>
       m_Points = new List<Vector3>();
    }
 
-   public void Init(Edge head, int numPoints)
+   public void Init(Edge head, int numPoints, Vector3 normal)
    {
       m_Head = head;
       m_NumPoints = numPoints;
+      m_Normal = normal;
    }
 
    public void AddEdgeThatFormsSplitWithNext(Edge edge, List<Face> toBeSplit)
@@ -48,17 +50,17 @@ public class Face : IEnumerable<Edge>
       m_Owner = null;
    }
 
-   public void OnNewOwner(Shape owner, List<Face> ownersFaces)
+   public void OnNewOwner(Shape owner)
    {
       if (m_Owner != owner)
       {
-         ownersFaces.Add(this);
+         owner.Faces.Add(this);
       }
       m_Owner = owner;
    }
 
    public void Split(Vector3 n, Vector3 P0, List<EdgePair> edgesBelow, List<EdgePair> edgesAbove,
-                     out Edge edgeWithNullFace1, out Edge edgeWithNullFace2)
+                     out Edge edgeWithNullFaceAbove, out Edge edgeWithNullFaceBelow)
    {
       var Ea = m_FormsSplitWithNext1;
       var Eb = m_FormsSplitWithNext2;
@@ -97,11 +99,17 @@ public class Face : IEnumerable<Edge>
       {
          edgesAbove.Add(newPairForNewFace);
          edgesBelow.Add(newPairForThis);
+
+         edgeWithNullFaceAbove = newPairForNewFace.Edge2;
+         edgeWithNullFaceBelow = newPairForThis.Edge2;
       }
       else
       {
          edgesAbove.Add(newPairForThis);
          edgesBelow.Add(newPairForNewFace);
+
+         edgeWithNullFaceAbove = newPairForThis.Edge2;
+         edgeWithNullFaceBelow = newPairForNewFace.Edge2;
       }
 
       // set face ref on new face's edges and count points
@@ -113,14 +121,11 @@ public class Face : IEnumerable<Edge>
       }
 
       // init
-      Init(newPairForThis.Edge1, m_NumPoints - newFacePointCount + 4);
-      newFace.Init(newPairForNewFace.Edge1, newFacePointCount);
+      Init(newPairForThis.Edge1, m_NumPoints - newFacePointCount + 4, m_Normal);
+      newFace.Init(newPairForNewFace.Edge1, newFacePointCount, m_Normal);
 
       m_FormsSplitWithNext1 = null;
       m_FormsSplitWithNext2 = null;
-
-      edgeWithNullFace1 = newPairForNewFace.Edge2;
-      edgeWithNullFace2 = newPairForThis.Edge2;
    }
 
    private Edge NextOnOpenHole(Edge e)
@@ -131,16 +136,24 @@ public class Face : IEnumerable<Edge>
       return otherPrevAgain.OwnerPair.Other(otherPrevAgain);
    }
 
-   public void PutOntoOpenHole(Edge edgeOnHole)
+   public void PutOntoOpenHole(Edge edgeOnHole, Vector3 normal)
    {
       var x = edgeOnHole;
       var xNext = NextOnOpenHole(x);
+      var numPoints = 0;
 
       do
       {
          x.InsertAfter(xNext);
          x.OwnerFace = this;
-      } while(xNext != edgeOnHole);
+         numPoints++;
+
+         x = xNext;
+         xNext = NextOnOpenHole(xNext);
+
+      } while(x != edgeOnHole);
+
+      Init(edgeOnHole, numPoints, normal);
    }
 
    public void AddMesh(FaceMeshPool pool)
@@ -161,6 +174,7 @@ public class Face : IEnumerable<Edge>
          m_Points.Add(e.End.Point);
 
       m_Mesh.SetVerts(m_Points);
+      m_Mesh.SetNormal(m_Normal);
    }
 
    public IEnumerator<Edge> GetEnumerator()

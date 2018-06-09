@@ -39,19 +39,19 @@ public class Shape : MonoBehaviour
          EdgePairs[i].Clip(n, P0, shapeBelow.EdgePairs, shapeAbove.EdgePairs, facesToSplit);
       }
 
-      Edge e1 = null;
-      Edge e2 = null;
+      Edge eAbove = null;
+      Edge eBelow = null;
 
       for (int i = 0; i < facesToSplit.Count; i++)
       {
-         facesToSplit[i].Split(n, P0, shapeBelow.EdgePairs, shapeAbove.EdgePairs, out e1, out e2);
+         facesToSplit[i].Split(n, P0, shapeBelow.EdgePairs, shapeAbove.EdgePairs, out eAbove, out eBelow);
       }
 
       var f1 = new Face();
       var f2 = new Face();
 
-      f1.PutOntoOpenHole(e1);
-      f2.PutOntoOpenHole(e2);
+      f1.PutOntoOpenHole(eAbove, -n);
+      f2.PutOntoOpenHole(eBelow, n);
    }
 
    private void InitNewShape(Shape shape)
@@ -61,7 +61,7 @@ public class Shape : MonoBehaviour
       var pairs = shape.EdgePairs;
       for (int i = 0; i < pairs.Count; i++)
       {
-         pairs[i].OnClippingFinished(shape.EdgePoints, shape.Points, centre, shape, shape.Faces);
+         pairs[i].OnClippingFinished(centre, shape);
       }
 
       shape.transform.position = transform.TransformPoint(centre);
