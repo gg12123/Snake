@@ -157,11 +157,11 @@ public class EdgePair
    {
       if (e == Edge1)
       {
-         return Edge1;
+         return Edge2;
       }
       else if (e == Edge2)
       {
-         return Edge2;
+         return Edge1;
       }
       else
       {

@@ -27,25 +27,22 @@ public class CreateInitialShape : MonoBehaviour
       var P3P7pair = new EdgePair(null, null);
 
       ConstructFace(P0P4pair, P1P5pair, P0, P4, P5, P1, Vector3.forward, true);
-      ConstructFace(P1P5pair, P2P6pair, P1, P5, P6, P2, Vector3.right, false);
+      ConstructFace(P1P5pair, P2P6pair, P1, P5, P6, P2, -Vector3.right, false);
       ConstructFace(P2P6pair, P3P7pair, P2, P6, P7, P3, -Vector3.forward, true);
-      ConstructFace(P3P7pair, P0P4pair, P3, P7, P4, P0, -Vector3.right, false);
+      ConstructFace(P3P7pair, P0P4pair, P3, P7, P4, P0, Vector3.right, false);
 
       var top = new Face();
-      top.PutOntoOpenHole(P0P4pair.Edge1.Prev.OwnerPair.Other(P0P4pair.Edge1.Prev), Vector3.up);
+      top.PutOntoOpenHole(P0P4pair.Edge1.Prev.Other, Vector3.up);
       top.OnNewOwner(m_Shape);
 
       var bottom = new Face();
-      bottom.PutOntoOpenHole(P0P4pair.Edge1.Next.OwnerPair.Other(P0P4pair.Edge1.Next), -Vector3.up);
+      bottom.PutOntoOpenHole(P0P4pair.Edge1.Next.Other, -Vector3.up);
       bottom.OnNewOwner(m_Shape);
 
       m_Shape.EdgePairs.Add(P0P4pair);
       m_Shape.EdgePairs.Add(P1P5pair);
       m_Shape.EdgePairs.Add(P2P6pair);
       m_Shape.EdgePairs.Add(P3P7pair);
-
-      m_Shape.Faces.Add(top);
-      m_Shape.Faces.Add(bottom);
 
       m_Shape.Points.Add(P0.Point);
       m_Shape.Points.Add(P1.Point);
@@ -81,10 +78,10 @@ public class CreateInitialShape : MonoBehaviour
       var P3P0Pair = new EdgePair(null, null);
 
       // setup the linked lists
-      RequiredEdge(P0P1pair, setEdge1).InsertAfter(P1P2Pair.Edge1);
-      RequiredEdge(P1P2Pair, setEdge1).InsertAfter(P2P3Pair.Edge1);
-      RequiredEdge(P2P3Pair, setEdge1).InsertAfter(P3P0Pair.Edge1);
-      RequiredEdge(P3P0Pair, setEdge1).InsertAfter(P0P1pair.Edge1);
+      RequiredEdge(P0P1pair, setEdge1).InsertAfter(RequiredEdge(P1P2Pair, setEdge1));
+      RequiredEdge(P1P2Pair, setEdge1).InsertAfter(RequiredEdge(P2P3Pair, setEdge1));
+      RequiredEdge(P2P3Pair, setEdge1).InsertAfter(RequiredEdge(P3P0Pair, setEdge1));
+      RequiredEdge(P3P0Pair, setEdge1).InsertAfter(RequiredEdge(P0P1pair, setEdge1));
 
       // set the start and end points
       RequiredEdge(P0P1pair, setEdge1).Start = P0;

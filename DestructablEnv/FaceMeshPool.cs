@@ -28,7 +28,7 @@ public class FaceMeshPool : MonoBehaviour
 
    private FaceMesh CreateNew(int numVers)
    {
-      var m = (Instantiate(m_Prefab) as GameObject).GetComponent<FaceMesh>();
+      var m = (Instantiate(m_Prefab, transform) as GameObject).GetComponent<FaceMesh>();
       m.Init(numVers);
       return m;
    }

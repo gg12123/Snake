@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public class FaceMesh : MonoBehaviour
 {
@@ -15,6 +16,7 @@ public class FaceMesh : MonoBehaviour
       m_Normals = new List<Vector3>(numVerts);
 
       m_Mesh = new Mesh();
+      m_Mesh.SetVertices((new Vector3[numVerts]).ToList());
       m_Mesh.SetTriangles(Triangles(), 0);
 
       GetComponent<MeshFilter>().mesh = m_Mesh;
@@ -30,8 +32,8 @@ public class FaceMesh : MonoBehaviour
 
    public void SetNormal(Vector3 normal)
    {
-      for (int i = 0; i < m_Normals.Count; i++)
-         m_Normals[i] = normal;
+      for (int i = 0; i < NumPoints; i++)
+         m_Normals.Add(normal);
 
       m_Mesh.SetNormals(m_Normals);
    }

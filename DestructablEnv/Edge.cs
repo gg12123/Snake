@@ -13,6 +13,8 @@ public class Edge
    public Edge Next { get; private set; }
    public Edge Prev { get; private set; }
 
+   public Edge Other { get { return OwnerPair.Other(this); } }
+
    public Edge(EdgePair pair, Face ownerFace)
    {
       OwnerPair = pair;

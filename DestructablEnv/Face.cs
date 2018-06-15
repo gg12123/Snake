@@ -130,10 +130,7 @@ public class Face : IEnumerable<Edge>
 
    private Edge NextOnOpenHole(Edge e)
    {
-      var prev = e.Prev;
-      var otherPrevAgain = prev.OwnerPair.Other(prev).Prev;
-
-      return otherPrevAgain.OwnerPair.Other(otherPrevAgain);
+      return e.Other.Prev.Other.Prev.Other;
    }
 
    public void PutOntoOpenHole(Edge edgeOnHole, Vector3 normal)
@@ -184,7 +181,7 @@ public class Face : IEnumerable<Edge>
       do
       {
          yield return e;
-         e = e.Next;
+         e = e.Prev;
       } while (e != m_Head);
    }
 
@@ -195,7 +192,7 @@ public class Face : IEnumerable<Edge>
       do
       {
          yield return e;
-         e = e.Next;
+         e = e.Prev;
       } while (e != m_Head);
    }
 }

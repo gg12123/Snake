@@ -18,6 +18,9 @@ public class Shape : MonoBehaviour
       EdgePairs = new List<EdgePair>();
       Points = new List<Vector3>();
       Faces = new List<Face>();
+
+      m_ShapePool = GetComponentInParent<ShapePool>();
+      m_MeshPool = GetComponentInParent<FaceMeshPool>();
    }
 
    private Vector3 CalculateCentre(List<EdgePair> pairs)
