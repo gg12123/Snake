@@ -10,8 +10,7 @@ public class Face : IEnumerable<Edge>
    private int m_NumPoints;
    private Vector3 m_Normal;
 
-   private Edge m_FormsSplitWithNext1;
-   private Edge m_FormsSplitWithNext2;
+   private IEdgeEnumerator m_LoopEnumerator;
 
    private Edge m_Head;
 
@@ -29,22 +28,6 @@ public class Face : IEnumerable<Edge>
       m_Normal = normal;
    }
 
-   public void AddEdgeThatFormsSplitWithNext(Edge edge, List<Face> toBeSplit)
-   {
-      if (m_FormsSplitWithNext1 == null)
-      {
-         m_FormsSplitWithNext1 = edge;
-      }
-      else if (m_FormsSplitWithNext2 == null)
-      {
-         m_FormsSplitWithNext2 = edge;
-      }
-      else
-      {
-         Debug.LogError("Face been given more than two edges that form split");
-      }
-   }
-
    public void ClearOwnerShape()
    {
       m_Owner = null;
@@ -59,73 +42,140 @@ public class Face : IEnumerable<Edge>
       m_Owner = owner;
    }
 
-   public void Split(Vector3 n, Vector3 P0, List<EdgePair> edgesBelow, List<EdgePair> edgesAbove,
-                     out Edge edgeWithNullFaceAbove, out Edge edgeWithNullFaceBelow)
+   private void SplitInHalf(Edge e1, Edge e2) // edges that form split with next
    {
-      var Ea = m_FormsSplitWithNext1;
-      var Eb = m_FormsSplitWithNext2;
-
-      var EaNext = Ea.Next;
-      var EbNext = Eb.Next;
-
-      var startForThis = Eb.End;
-      var endForThis = EaNext.Start;
-      var startForNew = Ea.End;
-      var endForNew = EbNext.Start;
-
       var newFace = new Face();
 
-      var newPairForNewFace = new EdgePair(newFace, null);
-      var newPairForThis = new EdgePair(this, null);
+      var pairForThis = new EdgePair(this, null);
+      var pairForNewFace = new EdgePair(newFace, null);
 
-      // insert edges into linked lists
-      Ea.InsertAfterAndBreak(newPairForNewFace.Edge1);
-      EbNext.InsertBeforeAndBreak(newPairForNewFace.Edge1);
+      var eThis = pairForThis.Edge1;
+      var eNew = pairForNewFace.Edge1;
 
-      EaNext.InsertBeforeAndBreak(newPairForThis.Edge1);
-      Eb.InsertAfterAndBreak(newPairForThis.Edge1);
+      var e1Next = e1.Next;
+      var e2Next = e2.Next;
 
-      // set start and end points
-      newPairForThis.Edge1.Start = startForThis;
-      newPairForThis.Edge1.End = endForThis;
+      e1.InsertAfterAndBreak(eThis);
+      e2Next.InsertBeforeAndBreak(eThis);
 
-      newPairForNewFace.Edge1.Start = startForNew;
-      newPairForNewFace.Edge1.End = endForNew;
+      e1Next.InsertBeforeAndBreak(eNew);
+      e2.InsertAfterAndBreak(eNew);
 
-      // add new edges to edges lists
-      var newFaceIsAbove = Utils.PointIsAbovePlane(n, P0, newPairForNewFace.Edge1.Next.End.Point);
+      eThis.Start = e1.End;
+      eThis.End = e2Next.Start;
 
-      if (newFaceIsAbove)
+      eNew.Start = e2.End;
+      eNew.End = e1Next.Start;
+
+      var newFacePointCount = InitOwnerFaceAndCountPoints(eNew, newFace);
+      var thisPointCount = m_NumPoints - newFacePointCount + 4;
+
+      newFace.Init(eNew, newFacePointCount, m_Normal);
+      Init(eThis, thisPointCount, m_Normal);
+   }
+
+   private int InitOwnerFaceAndCountPoints(Edge eOnNew, Face newFace)
+   {
+      int c = 0;
+      m_LoopEnumerator.Init(eOnNew);
+
+      for (var e = m_LoopEnumerator.First(); e != null; e = m_LoopEnumerator.Next())
       {
-         edgesAbove.Add(newPairForNewFace);
-         edgesBelow.Add(newPairForThis);
+         e.OwnerFace = newFace;
+         c++;
+      }
+      return c;
+   }
 
-         edgeWithNullFaceAbove = newPairForNewFace.Edge2;
-         edgeWithNullFaceBelow = newPairForThis.Edge2;
+   private void DetachEdge(Edge e)
+   {
+      var pairForThis = new EdgePair(this, null);
+      var eThis = pairForThis.Edge1;
+
+      var ePrev = e.Prev;
+      var eNext = e.Next;
+
+      ePrev.InsertAfterAndBreak(eThis);
+      eNext.InsertBeforeAndBreak(eThis);
+
+      eThis.Start = ePrev.End;
+      eThis.End = eNext.Start;
+
+      eThis.OwnerFace = this;
+   }
+
+   private Edge NormalSplit(Vector3 n, Vector3 P0, Edge start, Edge end)
+   {
+      Vector3 intPoint;
+      Edge next = null; // must form split with next
+
+      for (Edge curr = start; curr != end; curr = curr.Next)
+      {
+         if (Utils.PointIsInPlane(n, P0, curr.End.Point))
+         {
+            var p = curr.End.Point;
+            curr.End = new ShapePoint(p);
+            curr.Next.Start = new ShapePoint(p);
+
+            next = curr.End.Split(P0, n, curr, this);
+            SplitInHalf(end, curr);
+            break;
+         }
+         else if (Utils.LinePlaneIntersect(n, P0, curr.Start.Point, curr.End.Point, out intPoint))
+         {
+            var newPair = new EdgePair(this, curr.Other.OwnerFace);
+            var newEdge = newPair.Edge1;
+
+            newEdge.Start = new ShapePoint(intPoint);
+            newEdge.End = curr.End;
+            curr.End = new ShapePoint(intPoint);
+
+            curr.InsertAfter(newEdge);
+            curr.Other.InsertBefore(newEdge.Other);
+
+            next = newEdge.Other;
+
+            SplitInHalf(end, curr);
+            break;
+         }
+      }
+
+      return next;
+   }
+
+   private Edge ParralelSplit(Vector3 n, Vector3 P0, Edge edgeThatBridgesWithNext, Edge toDetach)
+   {
+      var e0 = edgeThatBridgesWithNext;
+
+      var p1 = new ShapePoint(e0.End.Point);
+      var p2 = new ShapePoint(e0.End.Point);
+
+      e0.End = p1;
+      e0.Next.Start = p2;
+
+      var next = e0.End.Split(P0, n, e0, this);
+
+      DetachEdge(toDetach);
+
+      return next;
+   }
+
+   public Edge Split(Vector3 n, Vector3 P0, Edge edgeThatFormsSplitWithNext)
+   {
+      var e0 = edgeThatFormsSplitWithNext;
+
+      if (Utils.PointIsInPlane(n, P0, e0.Next.End.Point))
+      {
+         return ParralelSplit(n, P0, e0.Next, e0.Next);
+      }
+      else if (Utils.PointIsInPlane(n, P0, e0.Start.Point))
+      {
+         return ParralelSplit(n, P0, e0.Prev, e0);
       }
       else
       {
-         edgesAbove.Add(newPairForThis);
-         edgesBelow.Add(newPairForNewFace);
-
-         edgeWithNullFaceAbove = newPairForThis.Edge2;
-         edgeWithNullFaceBelow = newPairForNewFace.Edge2;
+         return NormalSplit(n, P0, e0.Next.Next, e0);
       }
-
-      // set face ref on new face's edges and count points
-      int newFacePointCount = 0;
-      foreach (var edge in newFace)
-      {
-         edge.OwnerFace = newFace;
-         newFacePointCount++;
-      }
-
-      // init
-      Init(newPairForThis.Edge1, m_NumPoints - newFacePointCount + 4, m_Normal);
-      newFace.Init(newPairForNewFace.Edge1, newFacePointCount, m_Normal);
-
-      m_FormsSplitWithNext1 = null;
-      m_FormsSplitWithNext2 = null;
    }
 
    private Edge NextOnOpenHole(Edge e)
