@@ -16,6 +16,8 @@ public class Face : IEnumerable<Edge>
 
    private List<Vector3> m_Points;
 
+   public Shape OwnerShape { get { return m_Owner; } }
+
    public Face()
    {
       m_Points = new List<Vector3>();
@@ -42,7 +44,7 @@ public class Face : IEnumerable<Edge>
       m_Owner = owner;
    }
 
-   private void SplitInHalf(Edge e1, Edge e2) // edges that form split with next
+   public void SplitInHalf(Edge e1, Edge e2) // edges that form split with next
    {
       var newFace = new Face();
 
@@ -72,6 +74,8 @@ public class Face : IEnumerable<Edge>
 
       newFace.Init(eNew, newFacePointCount, m_Normal);
       Init(eThis, thisPointCount, m_Normal);
+
+      newFace.OnNewOwner(m_Owner);
    }
 
    private int InitOwnerFaceAndCountPoints(Edge eOnNew, Face newFace)
@@ -87,7 +91,7 @@ public class Face : IEnumerable<Edge>
       return c;
    }
 
-   private void DetachEdge(Edge e)
+   public void DetachEdge(Edge e)
    {
       var pairForThis = new EdgePair(this, null);
       var eThis = pairForThis.Edge1;
@@ -104,6 +108,32 @@ public class Face : IEnumerable<Edge>
       eThis.OwnerFace = this;
    }
 
+   public static Edge FormSplitOnEdge(Edge e, Vector3 splitPoint)
+   {
+      var newPair = new EdgePair(e.OwnerFace, e.Other.OwnerFace);
+      var newEdge = newPair.Edge1;
+
+      newEdge.Start = new ShapePoint(splitPoint);
+      newEdge.End = e.End;
+      e.End = new ShapePoint(splitPoint);
+
+      e.InsertAfter(newEdge);
+      e.Other.InsertBefore(newEdge.Other);
+
+      return newEdge.Other;
+   }
+
+   public static Edge FormSplitAtPoint(Vector3 n, Vector3 P0, Edge edgeThatBridgesWithNext)
+   {
+      var e = edgeThatBridgesWithNext;
+
+      var p = e.End.Point;
+      e.End = new ShapePoint(p);
+      e.Next.Start = new ShapePoint(p);
+
+      return e.End.Split(P0, n, e);
+   }
+
    private Edge NormalSplit(Vector3 n, Vector3 P0, Edge start, Edge end)
    {
       Vector3 intPoint;
@@ -113,28 +143,13 @@ public class Face : IEnumerable<Edge>
       {
          if (Utils.PointIsInPlane(n, P0, curr.End.Point))
          {
-            var p = curr.End.Point;
-            curr.End = new ShapePoint(p);
-            curr.Next.Start = new ShapePoint(p);
-
-            next = curr.End.Split(P0, n, curr, this);
+            next = FormSplitAtPoint(n, P0, curr);
             SplitInHalf(end, curr);
             break;
          }
          else if (Utils.LinePlaneIntersect(n, P0, curr.Start.Point, curr.End.Point, out intPoint))
          {
-            var newPair = new EdgePair(this, curr.Other.OwnerFace);
-            var newEdge = newPair.Edge1;
-
-            newEdge.Start = new ShapePoint(intPoint);
-            newEdge.End = curr.End;
-            curr.End = new ShapePoint(intPoint);
-
-            curr.InsertAfter(newEdge);
-            curr.Other.InsertBefore(newEdge.Other);
-
-            next = newEdge.Other;
-
+            next = FormSplitOnEdge(curr, intPoint);
             SplitInHalf(end, curr);
             break;
          }
@@ -145,18 +160,8 @@ public class Face : IEnumerable<Edge>
 
    private Edge ParralelSplit(Vector3 n, Vector3 P0, Edge edgeThatBridgesWithNext, Edge toDetach)
    {
-      var e0 = edgeThatBridgesWithNext;
-
-      var p1 = new ShapePoint(e0.End.Point);
-      var p2 = new ShapePoint(e0.End.Point);
-
-      e0.End = p1;
-      e0.Next.Start = p2;
-
-      var next = e0.End.Split(P0, n, e0, this);
-
+      var next = FormSplitAtPoint(n, P0, edgeThatBridgesWithNext);
       DetachEdge(toDetach);
-
       return next;
    }
 
@@ -222,6 +227,11 @@ public class Face : IEnumerable<Edge>
 
       m_Mesh.SetVerts(m_Points);
       m_Mesh.SetNormal(m_Normal);
+   }
+
+   public void AssignToShape(Vector3 n, Vector3 P0, Shape above, Shape below)
+   {
+
    }
 
    public IEnumerator<Edge> GetEnumerator()

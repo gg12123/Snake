@@ -89,4 +89,107 @@ public class Shape : MonoBehaviour
 
       m_ShapePool.Return(this);
    }
+
+   private void FindStartFaceAndEdge(Vector3 P0, Vector3 n, out Edge startEdge, out Edge startEdgeOnStartFace, out Face startFace)
+   {
+      Vector3 intPoint;
+
+      startFace = null;
+      startEdge = null;
+      startEdgeOnStartFace = null;
+
+      for (int i = 0; i < EdgePairs.Count; i++)
+      {
+         var edge = EdgePairs[i].Edge1;
+
+         if (Utils.LinePlaneIntersect(n, P0, edge.Start.Point, edge.End.Point, out intPoint))
+         {
+            startFace = edge.OwnerFace;
+            if (Utils.PointIsInPlane(n, P0, edge.Start.Point))
+            {
+               startEdgeOnStartFace = edge.Prev;
+               startEdge = Face.FormSplitAtPoint(n, P0, startEdgeOnStartFace);
+            }
+            else if (Utils.PointIsInPlane(n, P0, edge.End.Point))
+            {
+               startEdgeOnStartFace = edge;
+               startEdge = Face.FormSplitAtPoint(n, P0, startEdgeOnStartFace);
+            }
+            else
+            {
+               startEdgeOnStartFace = edge;
+               startEdge = Face.FormSplitOnEdge(edge, intPoint);
+            }
+         }
+      }
+   }
+
+   private void SplitFacesAndEdges(Vector3 P0, Vector3 n, out Edge eNearOpen1, out Edge eNearOpen2)
+   {
+      Face startFace;
+      Edge startEdge;
+      Edge startEdgeStartFace;
+
+      FindStartFaceAndEdge(P0, n, out startEdge, out startEdgeStartFace, out startFace);
+
+      var curr = startEdge;
+
+      while (curr.OwnerFace != startFace)
+      {
+         curr = curr.OwnerFace.Split(n, P0, curr);
+      }
+
+      if (curr.Next == startEdgeStartFace)
+      {
+         startFace.DetachEdge(startEdgeStartFace);
+
+         eNearOpen1 = startEdgeStartFace.Next.Other;
+         eNearOpen2 = startEdgeStartFace.Other.Next.Other;
+      }
+      else
+      {
+         startFace.SplitInHalf(curr, startEdgeStartFace);
+
+         eNearOpen1 = curr;
+         eNearOpen2 = startEdgeStartFace;
+      }
+   }
+
+   public void Split2(Vector3 P0, Vector3 n)
+   {
+      Edge nearOpen1;
+      Edge nearOpen2;
+
+      SplitFacesAndEdges(P0, n, out nearOpen1, out nearOpen2);
+
+      var shapeAbove = m_ShapePool.GetShape();
+      var shapeBelow = m_ShapePool.GetShape();
+
+      for (int i = 0; i < Faces.Count; i++)
+         Faces[i].AssignToShape(n, P0, shapeAbove, shapeBelow);
+
+      var f1 = new Face();
+      f1.PutOntoOpenHole(nearOpen1.Next.Other, nearOpen1.OwnerFace.OwnerShape == shapeAbove ? -n : n);
+      f1.OnNewOwner(nearOpen1.OwnerFace.OwnerShape);
+
+      var f2 = new Face();
+      f2.PutOntoOpenHole(nearOpen2.Next.Other, nearOpen2.OwnerFace.OwnerShape == shapeAbove ? -n : n);
+      f2.OnNewOwner(nearOpen1.OwnerFace.OwnerShape);
+   }
+
+   private void InitNewShape2(Shape shape)
+   {
+      var centre = CalculateCentre(shape.EdgePairs);
+
+      var pairs = shape.EdgePairs;
+      for (int i = 0; i < pairs.Count; i++)
+         pairs[i].OnSplittingFinished(centre, shape);
+
+      shape.transform.position = transform.TransformPoint(centre);
+      shape.transform.rotation = transform.rotation;
+
+      var faces = shape.Faces;
+      for (int i = 0; i < faces.Count; i++)
+         faces[i].AddMesh(m_MeshPool);
+   }
 }

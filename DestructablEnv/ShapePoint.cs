@@ -60,14 +60,15 @@ public class ShapePoint
 
    }
 
-   public Edge Split(Vector3 P0, Vector3 n, Edge edgeThatBridgesWithNext, Face currFace)
+   public Edge Split(Vector3 P0, Vector3 n, Edge edgeThatBridgesWithNext)
    {
       var e0 = edgeThatBridgesWithNext;
       var e1 = edgeThatBridgesWithNext.Next;
+      var startFace = e0.OwnerFace;
 
       m_Enumerator.Init(e0);
 
-      Edge nextEdge = null; // this must be on the opposite side of the plane to the input edge
+      Edge nextEdge = null; // this must be on the opposite side of the plane to the input edge and form the split with next
       Edge prev = m_Enumerator.First();
 
       for (Edge e = m_Enumerator.First(); e != null; e = m_Enumerator.Next())
@@ -81,7 +82,7 @@ public class ShapePoint
             e.End = e1.Start;
          }
 
-         if (e.End != prev.End && prev.OwnerFace != currFace)
+         if (e.End != prev.End && prev.OwnerFace != startFace)
          {
             nextEdge = prev;
          }

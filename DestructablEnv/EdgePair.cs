@@ -10,10 +10,13 @@ public class EdgePair
    private ShapePoint m_StartFor1;
    private ShapePoint m_EndFor1;
 
+   private bool m_AddedToShape;
+
    public EdgePair(Face edge1Face, Face edge2Face)
    {
       Edge1 = new Edge(this, edge1Face);
       Edge2 = new Edge(this, edge2Face);
+      m_AddedToShape = false;
    }
 
    public ShapePoint GetStart(Edge getter)
@@ -112,6 +115,29 @@ public class EdgePair
 
       newOwner.EdgePoints.Add(m_EndFor1.Point);
       newOwner.EdgePoints.Add(m_StartFor1.Point);
+   }
+
+   public void OnNewOwner(Shape owner)
+   {
+      if (!m_AddedToShape)
+      {
+         m_StartFor1.Reset();
+         m_EndFor1.Reset();
+
+         owner.EdgePairs.Add(this);
+         m_AddedToShape = true;
+      }
+   }
+
+   public void OnSplittingFinished(Vector3 centre, Shape owner)
+   {
+      m_StartFor1.CentreAndAdd(owner.Points, centre);
+      m_EndFor1.CentreAndAdd(owner.Points, centre);
+
+      owner.EdgePoints.Add(m_EndFor1.Point);
+      owner.EdgePoints.Add(m_StartFor1.Point);
+
+      m_AddedToShape = false;
    }
 
    private void OnClip()
