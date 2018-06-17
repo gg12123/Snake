@@ -4,20 +4,32 @@ using UnityEngine;
 
 public static class Utils
 {
-   public static bool PointIsAbovePlane(Vector3 planeNormal, Vector3 planeP0, Vector3 point)
-   {
-      return (Vector3.Dot(planeNormal, point - planeP0) > 0.0f);
-   }
+   public const float PointInPlaneTol = 0.001f;
 
    public static bool LinePlaneIntersect(Vector3 planeNormal, Vector3 planeP0, Vector3 lineP0, Vector3 lineP1, out Vector3 intPoint)
    {
       intPoint = Vector3.zero;
+
+      var l = (lineP1 - lineP0).normalized;
+
+      var num = Vector3.Dot(planeP0 - lineP0, planeNormal);
+      var denom = Vector3.Dot(l, planeNormal);
+
+      if (denom == 0.0f)
+         return false;
+
+      var u = num / denom;
+      if (u >= 0.0f && (u <= Vector3.Magnitude(lineP0 - lineP1)))
+      {
+         intPoint = lineP0 + u * l;
+         return true;
+      }
+
       return false;
    }
 
    public static bool PointIsInPlane(Vector3 planeNormal, Vector3 planeP0, Vector3 point)
    {
-   // i think it will be best to use some small tol
-      return true;
+      return (Mathf.Abs(Vector3.Dot(planeNormal, point - planeP0)) <= PointInPlaneTol);
    }
 }

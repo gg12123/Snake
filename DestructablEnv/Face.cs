@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Face : IEnumerable<Edge>
+public class Face
 {
    private Shape m_Owner;
    private FaceMesh m_Mesh;
@@ -21,6 +21,7 @@ public class Face : IEnumerable<Edge>
    public Face()
    {
       m_Points = new List<Vector3>();
+      m_LoopEnumerator = new EdgeLoopEnumerator();
    }
 
    public void Init(Edge head, int numPoints, Vector3 normal)
@@ -28,11 +29,6 @@ public class Face : IEnumerable<Edge>
       m_Head = head;
       m_NumPoints = numPoints;
       m_Normal = normal;
-   }
-
-   public void ClearOwnerShape()
-   {
-      m_Owner = null;
    }
 
    public void OnNewOwner(Shape owner)
@@ -106,6 +102,7 @@ public class Face : IEnumerable<Edge>
       eThis.End = eNext.Start;
 
       eThis.OwnerFace = this;
+      e.OwnerFace = null;
    }
 
    public static Edge FormSplitOnEdge(Edge e, Vector3 splitPoint)
@@ -222,7 +219,8 @@ public class Face : IEnumerable<Edge>
          m_Mesh.transform.parent = m_Owner.transform;
       }
 
-      foreach (var e in this)
+      m_LoopEnumerator.Init(m_Head);
+      for (var e = m_LoopEnumerator.First(); e != null; e = m_LoopEnumerator.Next())
          m_Points.Add(e.End.Point);
 
       m_Mesh.SetVerts(m_Points);
@@ -231,28 +229,29 @@ public class Face : IEnumerable<Edge>
 
    public void AssignToShape(Vector3 n, Vector3 P0, Shape above, Shape below)
    {
+      Shape shape = null;
 
-   }
-
-   public IEnumerator<Edge> GetEnumerator()
-   {
-      var e = m_Head;
-
-      do
+      m_LoopEnumerator.Init(m_Head);
+      for (var e = m_LoopEnumerator.First(); e != null; e = m_LoopEnumerator.Next())
       {
-         yield return e;
-         e = e.Prev;
-      } while (e != m_Head);
-   }
+         var x = Vector3.Dot(e.End.Point - P0, n);
 
-   IEnumerator IEnumerable.GetEnumerator()
-   {
-      var e = m_Head;
+         if (Mathf.Abs(x) > Utils.PointInPlaneTol)
+         {
+            shape = x > 0.0f ? above : below;
+            break;
+         }
+      }
 
-      do
+      if (shape == null)
+         Debug.LogError("Unable to assign shape to face!!!");
+
+      OnNewOwner(shape);
+
+      m_LoopEnumerator.Init(m_Head);
+      for (var e = m_LoopEnumerator.First(); e != null; e = m_LoopEnumerator.Next())
       {
-         yield return e;
-         e = e.Prev;
-      } while (e != m_Head);
+         e.OwnerPair.OnNewOwner(shape);
+      }
    }
 }

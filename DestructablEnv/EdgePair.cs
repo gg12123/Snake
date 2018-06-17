@@ -85,36 +85,9 @@ public class EdgePair
       }
    }
 
-   private void AddToCorrectList(Vector3 n, Vector3 P0, List<EdgePair> edgesBelow, List<EdgePair> edgesAbove)
-   {
-      // use the midpoint because it wont be a borderline case
-      var pointOnThis = 0.5f * (m_StartFor1.Point + m_EndFor1.Point);
-
-      if (Utils.PointIsAbovePlane(n, P0, pointOnThis))
-      {
-         edgesAbove.Add(this);
-      }
-      else
-      {
-         edgesBelow.Add(this);
-      }
-   }
-
    public Vector3 Midpoint()
    {
       return 0.5f * (m_StartFor1.Point + m_EndFor1.Point);
-   }
-
-   public void OnClippingFinished(Vector3 centre, Shape newOwner)
-   {
-      Edge1.OwnerFace.OnNewOwner(newOwner);
-      Edge2.OwnerFace.OnNewOwner(newOwner);
-
-      m_StartFor1.CentreAndAdd(newOwner.Points, centre);
-      m_EndFor1.CentreAndAdd(newOwner.Points, centre);
-
-      newOwner.EdgePoints.Add(m_EndFor1.Point);
-      newOwner.EdgePoints.Add(m_StartFor1.Point);
    }
 
    public void OnNewOwner(Shape owner)
@@ -138,45 +111,6 @@ public class EdgePair
       owner.EdgePoints.Add(m_StartFor1.Point);
 
       m_AddedToShape = false;
-   }
-
-   private void OnClip()
-   {
-      m_StartFor1.Reset();
-      m_EndFor1.Reset();
-
-      Edge1.OwnerFace.ClearOwnerShape();
-      Edge2.OwnerFace.ClearOwnerShape();
-   }
-
-   public void Clip(Vector3 n, Vector3 P0, List<EdgePair> edgesBelow, List<EdgePair> edgesAbove, List<Face> facesToBeSplit)
-   {
-      OnClip();
-
-      Vector3 intPoint;
-
-      if (Utils.LinePlaneIntersect(n, P0, m_StartFor1.Point, m_EndFor1.Point, out intPoint))
-      {
-         var newEdgePair = new EdgePair(Edge1.OwnerFace, Edge2.OwnerFace);
-
-         Edge1.InsertBefore(newEdgePair.Edge1);
-         Edge2.InsertAfter(newEdgePair.Edge2);
-
-         var oldEdge1Start = Edge1.Start;
-
-         // setting up edge1 will automatically setup edge2
-
-         Edge1.Start = new ShapePoint(intPoint);
-
-         newEdgePair.Edge1.Start = oldEdge1Start;
-         newEdgePair.Edge1.End = new ShapePoint(intPoint); // make new point becasue the shapes will be disconnected
-
-         Edge1.OwnerFace.AddEdgeThatFormsSplitWithNext(newEdgePair.Edge1, facesToBeSplit);
-         Edge2.OwnerFace.AddEdgeThatFormsSplitWithNext(Edge2, facesToBeSplit);
-
-         newEdgePair.AddToCorrectList(n, P0, edgesBelow, edgesAbove);
-      }
-      AddToCorrectList(n, P0, edgesBelow, edgesAbove);
    }
 
    public Edge Other(Edge e)

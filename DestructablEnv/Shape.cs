@@ -23,71 +23,15 @@ public class Shape : MonoBehaviour
       m_MeshPool = GetComponentInParent<FaceMeshPool>();
    }
 
-   private Vector3 CalculateCentre(List<EdgePair> pairs)
+   private Vector3 CalculateCentre()
    {
       Vector3 centre = Vector3.zero;
+      List<EdgePair> pairs = EdgePairs;
 
       for (int i = 0; i < pairs.Count; i++)
          centre += pairs[i].Midpoint();
 
       return centre / pairs.Count;
-   }
-
-   private void Divide(Shape shapeAbove, Shape shapeBelow, Vector3 P0, Vector3 n)
-   {
-      var facesToSplit = new List<Face>();
-
-      for (int i = 0; i < EdgePairs.Count; i++)
-      {
-         EdgePairs[i].Clip(n, P0, shapeBelow.EdgePairs, shapeAbove.EdgePairs, facesToSplit);
-      }
-
-      Edge eAbove = null;
-      Edge eBelow = null;
-
-      for (int i = 0; i < facesToSplit.Count; i++)
-      {
-         facesToSplit[i].Split(n, P0, shapeBelow.EdgePairs, shapeAbove.EdgePairs, out eAbove, out eBelow);
-      }
-
-      var f1 = new Face();
-      var f2 = new Face();
-
-      f1.PutOntoOpenHole(eAbove, -n);
-      f2.PutOntoOpenHole(eBelow, n);
-   }
-
-   private void InitNewShape(Shape shape)
-   {
-      var centre = CalculateCentre(shape.EdgePairs);
-
-      var pairs = shape.EdgePairs;
-      for (int i = 0; i < pairs.Count; i++)
-      {
-         pairs[i].OnClippingFinished(centre, shape);
-      }
-
-      shape.transform.position = transform.TransformPoint(centre);
-      shape.transform.rotation = transform.rotation;
-
-      var faces = shape.Faces;
-      for (int i = 0; i < faces.Count; i++)
-      {
-         faces[i].AddMesh(m_MeshPool);
-      }
-   }
-
-   public void Split(Vector3 P0, Vector3 n)
-   {
-      var shapeAbove = m_ShapePool.GetShape();
-      var shapeBelow = m_ShapePool.GetShape();
-
-      Divide(shapeAbove, shapeBelow, P0, n);
-
-      InitNewShape(shapeAbove);
-      InitNewShape(shapeBelow);
-
-      m_ShapePool.Return(this);
    }
 
    private void FindStartFaceAndEdge(Vector3 P0, Vector3 n, out Edge startEdge, out Edge startEdgeOnStartFace, out Face startFace)
@@ -124,7 +68,15 @@ public class Shape : MonoBehaviour
       }
    }
 
-   private void SplitFacesAndEdges(Vector3 P0, Vector3 n, out Edge eNearOpen1, out Edge eNearOpen2)
+   private void DoDetachEdge(Edge toDetach, Face startFace, out Edge ePointsToOpen1, out Edge ePointsToOpen2)
+   {
+      ePointsToOpen1 = toDetach.Next.Other;
+      ePointsToOpen2 = toDetach.Other.Next.Other;
+
+      startFace.DetachEdge(toDetach);
+   }
+
+   private void SplitFacesAndEdges(Vector3 P0, Vector3 n, out Edge ePointsToOpen1, out Edge ePointsToOpen2)
    {
       Face startFace;
       Edge startEdge;
@@ -141,26 +93,27 @@ public class Shape : MonoBehaviour
 
       if (curr.Next == startEdgeStartFace)
       {
-         startFace.DetachEdge(startEdgeStartFace);
-
-         eNearOpen1 = startEdgeStartFace.Next.Other;
-         eNearOpen2 = startEdgeStartFace.Other.Next.Other;
+         DoDetachEdge(startEdgeStartFace, startFace, out ePointsToOpen1, out ePointsToOpen2);
+      }
+      else if (curr.Prev == startEdgeStartFace)
+      {
+         DoDetachEdge(curr, startFace, out ePointsToOpen1, out ePointsToOpen2);
       }
       else
       {
          startFace.SplitInHalf(curr, startEdgeStartFace);
 
-         eNearOpen1 = curr;
-         eNearOpen2 = startEdgeStartFace;
+         ePointsToOpen1 = curr;
+         ePointsToOpen2 = startEdgeStartFace;
       }
    }
 
-   public void Split2(Vector3 P0, Vector3 n)
+   public void Split(Vector3 P0, Vector3 n)
    {
-      Edge nearOpen1;
-      Edge nearOpen2;
+      Edge pointsToOpen1;
+      Edge pointsToOpen2;
 
-      SplitFacesAndEdges(P0, n, out nearOpen1, out nearOpen2);
+      SplitFacesAndEdges(P0, n, out pointsToOpen1, out pointsToOpen2);
 
       var shapeAbove = m_ShapePool.GetShape();
       var shapeBelow = m_ShapePool.GetShape();
@@ -169,17 +122,17 @@ public class Shape : MonoBehaviour
          Faces[i].AssignToShape(n, P0, shapeAbove, shapeBelow);
 
       var f1 = new Face();
-      f1.PutOntoOpenHole(nearOpen1.Next.Other, nearOpen1.OwnerFace.OwnerShape == shapeAbove ? -n : n);
-      f1.OnNewOwner(nearOpen1.OwnerFace.OwnerShape);
+      f1.PutOntoOpenHole(pointsToOpen1.Next.Other, pointsToOpen1.OwnerFace.OwnerShape == shapeAbove ? -n : n);
+      f1.OnNewOwner(pointsToOpen1.OwnerFace.OwnerShape);
 
       var f2 = new Face();
-      f2.PutOntoOpenHole(nearOpen2.Next.Other, nearOpen2.OwnerFace.OwnerShape == shapeAbove ? -n : n);
-      f2.OnNewOwner(nearOpen1.OwnerFace.OwnerShape);
+      f2.PutOntoOpenHole(pointsToOpen2.Next.Other, pointsToOpen2.OwnerFace.OwnerShape == shapeAbove ? -n : n);
+      f2.OnNewOwner(pointsToOpen2.OwnerFace.OwnerShape);
    }
 
-   private void InitNewShape2(Shape shape)
+   private void InitNewShape(Shape shape)
    {
-      var centre = CalculateCentre(shape.EdgePairs);
+      var centre = shape.CalculateCentre();
 
       var pairs = shape.EdgePairs;
       for (int i = 0; i < pairs.Count; i++)
