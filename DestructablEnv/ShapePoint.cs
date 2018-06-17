@@ -5,14 +5,12 @@ using UnityEngine;
 public class ShapePoint
 {
    private bool m_BeenAdded;
-   private IEdgeEnumerator m_Enumerator;
 
    public Vector3 Point { get; set; }
 
    public ShapePoint(Vector3 point)
    {
       m_BeenAdded = false;
-      m_Enumerator = new EdgeAboutPointWhenSplittingEnumerator();
       Point = point;
    }
 
@@ -31,44 +29,44 @@ public class ShapePoint
       }
    }
 
-   private bool PointIsMoreOnPXSide(Vector3 P0, Vector3 n, Vector3 p, Vector3 pX, Vector3 pOther)
+   private Edge GetNextAboutPoint(Edge e)
    {
-      var pAmount = Vector3.Dot(n, p - P0);
-      var pXAmount = Vector3.Dot(n, pX - P0);
-      var pOtherAmount = Vector3.Dot(n, pOther - P0);
-
-      return (Mathf.Abs(pAmount - pXAmount) < Mathf.Abs(pAmount - pOtherAmount));
+      return e.Next.Other;
    }
 
    public Edge Split(Vector3 P0, Vector3 n, Edge edgeThatBridgesWithNext)
    {
       var e0 = edgeThatBridgesWithNext;
       var e1 = edgeThatBridgesWithNext.Next;
-      var startFace = e0.OwnerFace;
-
-      m_Enumerator.Init(e0);
 
       Edge nextEdge = null; // this must be on the opposite side of the plane to the input edge and form the split with next
-      Edge prev = m_Enumerator.First();
 
-      for (Edge e = m_Enumerator.First(); e != null; e = m_Enumerator.Next())
+      bool onE1Side = true;
+
+      var curr = GetNextAboutPoint(GetNextAboutPoint(e0));
+      var prev = GetNextAboutPoint(e0);
+
+      var end = prev;
+
+      while (curr != end)
       {
-         if (PointIsMoreOnPXSide(P0, n, e.Start.Point, e0.Start.Point, e1.End.Point))
-         {
-            e.End = e0.End;
-         }
-         else
-         {
-            e.End = e1.Start;
-         }
+         var currA = Vector3.Dot(n, curr.Start.Point - P0);
+         var prevA = Vector3.Dot(n, prev.Start.Point - P0);
 
-         if (e.End != prev.End && prev.OwnerFace != startFace)
+         if (onE1Side && (currA * prevA <= 0.0f))
          {
             nextEdge = prev;
+            onE1Side = false;
          }
 
-         prev = e;
+         curr.End = onE1Side ? e1.Start : e0.End;
+
+         prev = curr;
+         curr = GetNextAboutPoint(curr);
       }
+
+      if (onE1Side)
+         Debug.LogError("error when splitting point");
 
       return nextEdge;
    }
