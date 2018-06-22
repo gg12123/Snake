@@ -10,13 +10,13 @@ public class EdgePair
    private ShapePoint m_StartFor1;
    private ShapePoint m_EndFor1;
 
-   private bool m_AddedToShape;
+   private Shape m_Owner;
 
    public EdgePair(Face edge1Face, Face edge2Face)
    {
       Edge1 = new Edge(this, edge1Face);
       Edge2 = new Edge(this, edge2Face);
-      m_AddedToShape = false;
+      m_Owner = null;
    }
 
    public ShapePoint GetStart(Edge getter)
@@ -90,15 +90,15 @@ public class EdgePair
       return 0.5f * (m_StartFor1.Point + m_EndFor1.Point);
    }
 
-   public void OnNewOwner(Shape owner)
+   public void OnNewOwner(Shape newOwner)
    {
-      if (!m_AddedToShape)
+      if (newOwner != m_Owner)
       {
          m_StartFor1.Reset();
          m_EndFor1.Reset();
 
-         owner.EdgePairs.Add(this);
-         m_AddedToShape = true;
+         newOwner.EdgePairs.Add(this);
+         m_Owner = newOwner;
       }
    }
 
@@ -109,8 +109,6 @@ public class EdgePair
 
       owner.EdgePoints.Add(m_EndFor1.Point);
       owner.EdgePoints.Add(m_StartFor1.Point);
-
-      m_AddedToShape = false;
    }
 
    public Edge Other(Edge e)

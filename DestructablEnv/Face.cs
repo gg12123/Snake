@@ -214,10 +214,13 @@ public class Face
       }
 
       if (m_Mesh == null)
-      {
          m_Mesh = pool.GetMesh(m_NumPoints);
-         m_Mesh.transform.parent = m_Owner.transform;
-      }
+
+      m_Mesh.transform.SetParent(m_Owner.transform, false);
+      m_Mesh.transform.localPosition = Vector3.zero;
+      m_Mesh.transform.localRotation = Quaternion.identity;
+
+      m_Points.Clear();
 
       m_LoopEnumerator.Init(m_Head);
       for (var e = m_LoopEnumerator.First(); e != null; e = m_LoopEnumerator.Next())

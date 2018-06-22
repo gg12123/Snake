@@ -42,7 +42,7 @@ public class Pool<T> where T : MonoBehaviour
    public void ReturnObject(T obj)
    {
       obj.gameObject.SetActive(false);
-      obj.transform.parent = m_Parent;
+      obj.transform.SetParent(m_Parent, false);
       m_Objects.Push(obj);
    }
 }

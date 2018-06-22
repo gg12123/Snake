@@ -28,7 +28,7 @@ public class EdgeLoopEnumerator : IEdgeEnumerator
 
    public Edge Next()
    {
-      m_Curr = m_Curr.Next;
+      m_Curr = m_Curr.Prev;
       return (m_Curr == m_First ? null : m_Curr);
    }
 }

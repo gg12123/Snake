@@ -64,6 +64,7 @@ public class Shape : MonoBehaviour
                startEdgeOnStartFace = edge;
                startEdge = Face.FormSplitOnEdge(edge, intPoint);
             }
+            break;
          }
       }
    }
@@ -128,6 +129,11 @@ public class Shape : MonoBehaviour
       var f2 = new Face();
       f2.PutOntoOpenHole(pointsToOpen2.Next.Other, pointsToOpen2.OwnerFace.OwnerShape == shapeAbove ? -n : n);
       f2.OnNewOwner(pointsToOpen2.OwnerFace.OwnerShape);
+
+      InitNewShape(shapeAbove);
+      InitNewShape(shapeBelow);
+
+      m_ShapePool.Return(this);
    }
 
    private void InitNewShape(Shape shape)

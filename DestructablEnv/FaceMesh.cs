@@ -32,6 +32,8 @@ public class FaceMesh : MonoBehaviour
 
    public void SetNormal(Vector3 normal)
    {
+      m_Normals.Clear();
+
       for (int i = 0; i < NumPoints; i++)
          m_Normals.Add(normal);
 

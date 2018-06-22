@@ -39,10 +39,10 @@ public class CreateInitialShape : MonoBehaviour
       bottom.PutOntoOpenHole(P0P4pair.Edge1.Next.Other, -Vector3.up);
       bottom.OnNewOwner(m_Shape);
 
-      m_Shape.EdgePairs.Add(P0P4pair);
-      m_Shape.EdgePairs.Add(P1P5pair);
-      m_Shape.EdgePairs.Add(P2P6pair);
-      m_Shape.EdgePairs.Add(P3P7pair);
+      P0P4pair.OnNewOwner(m_Shape);
+      P1P5pair.OnNewOwner(m_Shape);
+      P2P6pair.OnNewOwner(m_Shape);
+      P3P7pair.OnNewOwner(m_Shape);
 
       m_Shape.Points.Add(P0.Point);
       m_Shape.Points.Add(P1.Point);
@@ -107,8 +107,8 @@ public class CreateInitialShape : MonoBehaviour
       face.OnNewOwner(m_Shape);
 
       // set stuff on the shape
-      m_Shape.EdgePairs.Add(P1P2Pair);
-      m_Shape.EdgePairs.Add(P3P0Pair);
+      P1P2Pair.OnNewOwner(m_Shape);
+      P3P0Pair.OnNewOwner(m_Shape);
    }
 
    private Edge RequiredEdge(EdgePair pair, bool set1)

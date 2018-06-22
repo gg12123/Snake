@@ -45,6 +45,7 @@ public class FaceMeshPool : MonoBehaviour
    public void ReturnMesh(FaceMesh mesh)
    {
       mesh.gameObject.SetActive(false);
+      mesh.transform.SetParent(transform, false);
       m_Meshes[mesh.NumPoints].Push(mesh);
    }
 }
