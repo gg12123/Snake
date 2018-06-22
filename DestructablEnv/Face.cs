@@ -66,7 +66,7 @@ public class Face
       eNew.End = e1Next.Start;
 
       var newFacePointCount = InitOwnerFaceAndCountPoints(eNew, newFace);
-      var thisPointCount = m_NumPoints - newFacePointCount + 4;
+      var thisPointCount = m_NumPoints - newFacePointCount + 2;
 
       newFace.Init(eNew, newFacePointCount, m_Normal);
       Init(eThis, thisPointCount, m_Normal);
@@ -102,7 +102,13 @@ public class Face
       eThis.End = eNext.Start;
 
       eThis.OwnerFace = this;
-      e.OwnerFace = null;
+
+      e.Clear();
+   }
+
+   public void OnEdgeSplit()
+   {
+      m_NumPoints++;
    }
 
    public static Edge FormSplitOnEdge(Edge e, Vector3 splitPoint)
@@ -117,7 +123,12 @@ public class Face
       e.InsertAfter(newEdge);
       e.Other.InsertBefore(newEdge.Other);
 
-      return newEdge.Other;
+      var next = newEdge.Other;
+
+      next.OwnerFace.OnEdgeSplit();
+      e.OwnerFace.OnEdgeSplit();
+
+      return next;
    }
 
    public static Edge FormSplitAtPoint(Vector3 n, Vector3 P0, Edge edgeThatBridgesWithNext)
@@ -193,7 +204,7 @@ public class Face
 
       do
       {
-         x.InsertAfter(xNext);
+         x.InsertAfterAndBreak(xNext);
          x.OwnerFace = this;
          numPoints++;
 

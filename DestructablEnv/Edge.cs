@@ -60,4 +60,11 @@ public class Edge
       Prev = toInsert;
       toInsert.Next = this;
    }
+
+   public void Clear()
+   {
+      Next = null;
+      Prev = null;
+      OwnerFace = null;
+   }
 }

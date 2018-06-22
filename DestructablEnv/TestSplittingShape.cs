@@ -9,7 +9,7 @@ public class TestSplittingShape : MonoBehaviour
       if (Input.GetKeyDown(KeyCode.Space))
       {
          var shape = GetComponentInChildren<Shape>();
-         shape.Split(Vector3.zero, Vector3.up);
+         shape.Split(Vector3.zero, (Vector3.up + Vector3.right).normalized);
       }
    }
 }
