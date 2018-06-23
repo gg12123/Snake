@@ -20,7 +20,7 @@ public class Face
 
    public Face()
    {
-      m_Points = new List<Vector3>();
+      m_Points = new List<Vector3>(10);
       m_LoopEnumerator = new EdgeLoopEnumerator();
    }
 

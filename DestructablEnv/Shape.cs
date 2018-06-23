@@ -14,10 +14,10 @@ public class Shape : MonoBehaviour
 
    private void Awake()
    {
-      EdgePoints = new List<Vector3>();
-      EdgePairs = new List<EdgePair>();
-      Points = new List<Vector3>();
-      Faces = new List<Face>();
+      EdgePoints = new List<Vector3>(40);
+      EdgePairs = new List<EdgePair>(20);
+      Points = new List<Vector3>(10);
+      Faces = new List<Face>(12);
 
       m_ShapePool = GetComponentInParent<ShapePool>();
       m_MeshPool = GetComponentInParent<FaceMeshPool>();
