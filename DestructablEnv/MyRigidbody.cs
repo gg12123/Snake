@@ -23,8 +23,28 @@ public class MyRigidbody : MonoBehaviour
 
    public void Init()
    {
-      // calculate inertia using the points in shape
       var shape = GetComponent<Shape>();
+
+      var Ixx = 0.0f;
+      var Iyy = 0.0f;
+      var Izz = 0.0f;
+
+      var Ixy = 0.0f;
+      var Ixz = 0.0f;
+      var Iyz = 0.0f;
+
+      for (int i = 0; i < shape.Points.Count; i++)
+      {
+         var P = shape.Points[i];
+
+         Ixx += (P.y * P.y + P.z * P.z);
+         Iyy += (P.x * P.x + P.z * P.z);
+         Izz += (P.x * P.x + P.y * P.y);
+
+         Ixy += (P.x * P.y);
+         Ixz += (P.x * P.z);
+         Iyz += (P.y * P.z);
+      }
    }
 
    public void SetCollision(Collision col)

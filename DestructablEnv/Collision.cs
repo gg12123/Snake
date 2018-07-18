@@ -20,17 +20,17 @@ public class Collision : MonoBehaviour
 
    public Vector3 GetImpulseWorld(MyRigidbody body)
    {
-      return body == m_Body1 ? m_J * m_CollisionNormalWorld : -m_J * m_CollisionNormalWorld;
+      return body == m_Body2 ? m_J * m_CollisionNormalWorld : -m_J * m_CollisionNormalWorld;
    }
 
    public Vector3 GetImpulseLocal(MyRigidbody body)
    {
-      return body == m_Body1 ? m_J * m_CollisionNormalBody1Local : -m_J * m_CollisionNormalBody2Local;
+      return body == m_Body2 ? m_J * m_CollisionNormalBody1Local : -m_J * m_CollisionNormalBody2Local;
    }
 
    public Vector3 GetCollisionPointLocal(MyRigidbody body)
    {
-      return body == m_Body1 ? m_CollisionPointBody1Local : m_CollisionPointBody2Local;
+      return body == m_Body2 ? m_CollisionPointBody1Local : m_CollisionPointBody2Local;
    }
 
    public float CalculateS(Vector3 n, Vector3 r, MyRigidbody body)
@@ -39,24 +39,24 @@ public class Collision : MonoBehaviour
       return Vector3.Dot(n, Vector3.Cross(x, r));
    }
 
-   public void Calculate(MyRigidbody body1, MyRigidbody body2, Vector3 collNormalWorld, Vector3 collPointWorld)
+   public void Calculate(MyRigidbody body1, MyRigidbody body2, Vector3 collNormalWorld1To2, Vector3 collPointWorld)
    {
       var v1 = body1.VelocityWorldAtPoint(collPointWorld);
       var v2 = body2.VelocityWorldAtPoint(collPointWorld);
 
-      if (Vector3.Dot(v1, v2) < 0.0f)
+      var vr = v2 - v1;
+
+      if (Vector3.Dot(vr, collNormalWorld1To2) < 0.0f)
       {
          var r1 = body1.transform.InverseTransformPoint(collPointWorld);
          var r2 = body2.transform.InverseTransformPoint(collPointWorld);
 
-         m_CollisionNormalWorld = collNormalWorld;
-         m_CollisionNormalBody1Local = body1.transform.InverseTransformDirection(collNormalWorld);
-         m_CollisionNormalBody2Local = body2.transform.InverseTransformDirection(collNormalWorld);
+         m_CollisionNormalWorld = collNormalWorld1To2;
+         m_CollisionNormalBody1Local = body1.transform.InverseTransformDirection(collNormalWorld1To2);
+         m_CollisionNormalBody2Local = body2.transform.InverseTransformDirection(collNormalWorld1To2);
 
          var s1 = CalculateS(m_CollisionNormalBody1Local, r1, body1);
          var s2 = CalculateS(m_CollisionNormalBody2Local, r2, body2);
-
-         var vr = v1 - v2;
 
          var m1 = body1.Mass;
          var m2 = body2.Mass;
