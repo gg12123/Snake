@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Collision : MonoBehaviour
+public class Collision
 {
    private const float e = 0.8f;
 
@@ -33,7 +33,7 @@ public class Collision : MonoBehaviour
       return body == m_Body2 ? m_CollisionPointBody1Local : m_CollisionPointBody2Local;
    }
 
-   public float CalculateS(Vector3 n, Vector3 r, MyRigidbody body)
+   private float CalculateS(Vector3 n, Vector3 r, MyRigidbody body)
    {
       var x = (Vector3)(body.InertiaInverse * Vector3.Cross(r, n));
       return Vector3.Dot(n, Vector3.Cross(x, r));

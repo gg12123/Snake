@@ -31,24 +31,24 @@ public class Face
       m_Normal = normal;
    }
 
-   public bool IsCollidedWithEdge(Vector3 P0ws, Vector3 P1ws)
+   public bool IsCollidedWithEdge(Vector3 P0ws, Vector3 P1ws, out Vector3 collPoint)
    {
       var localP0 = m_Owner.transform.InverseTransformPoint(P0ws);
       var localP1 = m_Owner.transform.InverseTransformPoint(P1ws);
 
-      Vector3 P;
-      if (Utils.LinePlaneIntersect(m_Normal, m_Points[0], localP0, localP1, out P))
+      if (Utils.LinePlaneIntersect(m_Normal, m_Points[0], localP0, localP1, out collPoint))
       {
          for (int i = 0; i < m_Points.Count; i++)
          {
             var next = (i + 1) % m_Points.Count;
 
             var n = Vector3.Cross(m_Points[next] - m_Points[i], m_Normal);
-            var toP = P - m_Points[i];
+            var toP = collPoint - m_Points[i];
 
             if (Vector3.Dot(n, toP) > 0.0f)
                return false;
          }
+         collPoint = m_Owner.transform.TransformPoint(collPoint);
          return true;
       }
       return false;

@@ -4,10 +4,26 @@ using UnityEngine;
 
 public class CreateInitialShape : MonoBehaviour
 {
+   [System.Serializable]
+   public class ShapeParams
+   {
+      public Vector3 Position;
+      public float Drag;
+   }
+
+   [SerializeField]
+   private ShapeParams[] m_Positions;
+
    private Shape m_Shape;
 
    // Use this for initialization
-   void Start ()
+   void Awake ()
+   {
+      for (int i = 0; i < m_Positions.Length; i++)
+         CreateShape(i);
+   }
+
+   private void CreateShape(int i)
    {
       m_Shape = GetComponent<ShapePool>().GetShape();
 
@@ -63,8 +79,9 @@ public class CreateInitialShape : MonoBehaviour
       foreach (var face in m_Shape.Faces)
          face.AddMesh(meshPool);
 
-      m_Shape.transform.position = Vector3.zero;
+      m_Shape.transform.position = m_Positions[i].Position;
       m_Shape.transform.rotation = Quaternion.identity;
+      m_Shape.GetComponent<MyRigidbody>().Drag = m_Positions[i].Drag;
    }
 
    private void ConstructFace(EdgePair P0P1pair, EdgePair P2P3Pair,

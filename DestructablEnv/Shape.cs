@@ -23,19 +23,20 @@ public class Shape : MonoBehaviour
       m_MeshPool = GetComponentInParent<FaceMeshPool>();
    }
 
-   public bool IsCollidedWithOther(Shape other)
+   public bool IsCollidedWithOther(Shape other, out Vector3 collPoint)
    {
-      if (EdgesCollideWithOther(other))
+      if (EdgesCollideWithOther(other, out collPoint))
          return true;
 
-      if (other.EdgesCollideWithOther(this))
+      if (other.EdgesCollideWithOther(this, out collPoint))
          return true;
 
       return false;
    }
 
-   public bool EdgesCollideWithOther(Shape other)
+   public bool EdgesCollideWithOther(Shape other, out Vector3 collPoint)
    {
+      collPoint = Vector3.zero;
       for (int i = 0; i < EdgePoints.Count; i += 2)
       {
          var P0 = transform.TransformPoint(EdgePoints[i]);
@@ -43,7 +44,7 @@ public class Shape : MonoBehaviour
 
          for (int j = 0; j < other.Faces.Count; j++)
          {
-            if (other.Faces[j].IsCollidedWithEdge(P0, P1))
+            if (other.Faces[j].IsCollidedWithEdge(P0, P1, out collPoint))
                return true;
          }
       }

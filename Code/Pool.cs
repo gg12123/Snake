@@ -13,11 +13,18 @@ public class Pool<T> where T : MonoBehaviour
    private Transform m_Parent;
    private Stack<T> m_Objects;
 
+   private bool m_Initialised = false;
+
    public void Init(Transform parent)
    {
-      m_Parent = parent;
-      m_Objects = new Stack<T>();
-      GenerateObjects();
+      if (!m_Initialised)
+      {
+         m_Parent = parent;
+         m_Objects = new Stack<T>();
+         GenerateObjects();
+
+         m_Initialised = true;
+      }
    }
 
    private void GenerateObjects()

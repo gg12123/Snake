@@ -8,18 +8,31 @@ public class MyRigidbody : MonoBehaviour
    private float m_Drag = 0.5f;
    [SerializeField]
    private float m_AngularDrag = 0.5f;
+   [SerializeField]
+   private float m_Mass = 1.0f;
 
    private const float g = 9.8f;
+
+   private Matrix3 m_Inertia;
+   private Matrix3 m_InertiaInv;
+
+   public Shape Shape { get; private set; }
 
    public Vector3 VelocityWorld { get; private set; }
    public Vector3 VelocityLocal { get { return transform.InverseTransformDirection(VelocityWorld); } }
    public Vector3 AngularVelocityWorld { get { return transform.TransformDirection(AngularVelocityLocal); } }
    public Vector3 AngularVelocityLocal { get; private set; }
-   public float Mass { get; private set; }
-   public Matrix4x4 Inertia { get; private set; }
-   public Matrix4x4 InertiaInverse { get; private set; }
+   public float Mass { get { return m_Mass; } }
+   public Matrix3 Inertia { get { return m_Inertia; } }
+   public Matrix3 InertiaInverse { get { return m_InertiaInv; } }
+   public float Drag { get { return m_Drag; } set { m_Drag = value; } }
 
    private Collision m_Collision;
+
+   private void Awake()
+   {
+      Shape = GetComponent<Shape>();
+   }
 
    public void Init()
    {
@@ -45,6 +58,22 @@ public class MyRigidbody : MonoBehaviour
          Ixz += (P.x * P.z);
          Iyz += (P.y * P.z);
       }
+
+      m_Inertia = new Matrix3();
+
+      m_Inertia[0, 0] = Ixx;
+      m_Inertia[0, 1] = -Ixy;
+      m_Inertia[0, 3] = -Ixz;
+
+      m_Inertia[1, 0] = -Ixy;
+      m_Inertia[1, 1] = Iyy;
+      m_Inertia[1, 2] = -Iyz;
+
+      m_Inertia[2, 0] = -Ixz;
+      m_Inertia[2, 1] = -Iyz;
+      m_Inertia[2, 2] = Izz;
+
+      m_InertiaInv = m_Inertia.Inverse();
    }
 
    public void SetCollision(Collision col)
