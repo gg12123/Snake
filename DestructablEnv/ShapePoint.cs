@@ -7,6 +7,7 @@ public class ShapePoint
    private bool m_BeenAdded;
 
    public Vector3 Point { get; set; }
+   public int Index { get; set; }
 
    public ShapePoint(Vector3 point)
    {
@@ -25,6 +26,7 @@ public class ShapePoint
       {
          Point -= centre;
          shapesPoints.Add(Point);
+         Index = shapesPoints.Count - 1;
          m_BeenAdded = true;
       }
    }

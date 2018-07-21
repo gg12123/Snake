@@ -107,8 +107,8 @@ public class EdgePair
       m_StartFor1.CentreAndAdd(owner.Points, centre);
       m_EndFor1.CentreAndAdd(owner.Points, centre);
 
-      owner.EdgePoints.Add(m_EndFor1.Point);
-      owner.EdgePoints.Add(m_StartFor1.Point);
+      owner.EdgePoints.Add(m_EndFor1.Index);
+      owner.EdgePoints.Add(m_StartFor1.Index);
    }
 
    public Edge Other(Edge e)

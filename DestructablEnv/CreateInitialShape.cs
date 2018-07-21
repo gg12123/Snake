@@ -69,11 +69,22 @@ public class CreateInitialShape : MonoBehaviour
       m_Shape.Points.Add(P6.Point);
       m_Shape.Points.Add(P7.Point);
 
+      P0.Index = 0;
+      P1.Index = 1;
+      P2.Index = 2;
+      P3.Index = 3;
+      P4.Index = 4;
+      P5.Index = 5;
+      P6.Index = 6;
+      P7.Index = 7;
+
       foreach (var pair in m_Shape.EdgePairs)
       {
-         m_Shape.EdgePoints.Add(pair.Edge1.Start.Point);
-         m_Shape.EdgePoints.Add(pair.Edge1.End.Point);
+         m_Shape.EdgePoints.Add(pair.Edge1.Start.Index);
+         m_Shape.EdgePoints.Add(pair.Edge1.End.Index);
       }
+
+      m_Shape.EnsureWorldPointsListIsBigEnough();
 
       var meshPool = GetComponent<FaceMeshPool>();
       foreach (var face in m_Shape.Faces)
@@ -81,6 +92,7 @@ public class CreateInitialShape : MonoBehaviour
 
       m_Shape.transform.position = m_Positions[i].Position;
       m_Shape.transform.rotation = Quaternion.identity;
+      m_Shape.UpdateWorldPoints();
       m_Shape.GetComponent<MyRigidbody>().Drag = m_Positions[i].Drag;
    }
 

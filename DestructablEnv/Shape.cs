@@ -4,9 +4,10 @@ using UnityEngine;
 
 public class Shape : MonoBehaviour
 {
-   public List<Vector3> EdgePoints { get; private set; }
+   public List<int> EdgePoints { get; private set; }
    public List<EdgePair> EdgePairs{ get; private set; }
    public List<Vector3> Points { get; private set; }
+   public List<Vector3> WorldPoints { get; private set; }
    public List<Face> Faces { get; private set; }
 
    private ShapePool m_ShapePool;
@@ -14,13 +15,34 @@ public class Shape : MonoBehaviour
 
    private void Awake()
    {
-      EdgePoints = new List<Vector3>(40);
+      EdgePoints = new List<int>(40);
       EdgePairs = new List<EdgePair>(20);
       Points = new List<Vector3>(10);
+      WorldPoints = new List<Vector3>(10);
       Faces = new List<Face>(12);
 
       m_ShapePool = GetComponentInParent<ShapePool>();
       m_MeshPool = GetComponentInParent<FaceMeshPool>();
+   }
+
+   public void EnsureWorldPointsListIsBigEnough()
+   {
+      var currNum = WorldPoints.Count;
+      var reqNum = Points.Count;
+
+      for (int i = currNum; i < reqNum; i++)
+      {
+         WorldPoints.Add(Vector3.zero);
+      }
+   }
+
+   public void UpdateWorldPoints()
+   {
+      for (int i = 0; i < Points.Count; i++)
+         WorldPoints[i] = transform.TransformPoint(Points[i]);
+
+      for (int i = 0; i < Faces.Count; i++)
+         Faces[i].UpdateWorldNormal();
    }
 
    public bool IsCollidedWithOther(Shape other, out Vector3 collPoint)
@@ -31,6 +53,45 @@ public class Shape : MonoBehaviour
       if (other.EdgesCollideWithOther(this, out collPoint))
          return true;
 
+      return false;
+   }
+
+   public bool IsPointCollidedWithOthersFace(Shape other, out Vector3 collPoint, out Vector3 collNormal)
+   {
+      var faces = other.Faces;
+
+      collPoint = collNormal = Vector3.zero;
+
+      for (int i = 0; i < WorldPoints.Count; i++)
+      {
+         var P = WorldPoints[i];
+         var coll = true;
+         var smallestAmount = Mathf.Infinity;
+         Face closestFace = null;
+
+         for (int j = 0; j < faces.Count; j++)
+         {
+            float amount;
+            if (!faces[j].IsAbovePoint(P, out amount))
+            {
+               coll = false;
+               break;
+            }
+
+            if (amount < smallestAmount)
+            {
+               closestFace = faces[j];
+               smallestAmount = amount;
+            }
+         }
+
+         if (coll)
+         {
+            collPoint = P;
+            collNormal = closestFace.NormalWorld;
+            return true;
+         }
+      }
       return false;
    }
 
@@ -137,6 +198,15 @@ public class Shape : MonoBehaviour
       }
    }
 
+   public void ClearData()
+   {
+      Faces.Clear();
+      Points.Clear();
+      WorldPoints.Clear();
+      EdgePoints.Clear();
+      EdgePairs.Clear();
+   }
+
    public void Split(Vector3 P0, Vector3 n)
    {
       Edge pointsToOpen1;
@@ -146,6 +216,9 @@ public class Shape : MonoBehaviour
 
       var shapeAbove = m_ShapePool.GetShape();
       var shapeBelow = m_ShapePool.GetShape();
+
+      shapeAbove.ClearData();
+      shapeBelow.ClearData();
 
       for (int i = 0; i < Faces.Count; i++)
          Faces[i].AssignToShape(n, P0, shapeAbove, shapeBelow);
@@ -178,5 +251,7 @@ public class Shape : MonoBehaviour
       var faces = shape.Faces;
       for (int i = 0; i < faces.Count; i++)
          faces[i].AddMesh(m_MeshPool);
+
+      shape.EnsureWorldPointsListIsBigEnough();
    }
 }

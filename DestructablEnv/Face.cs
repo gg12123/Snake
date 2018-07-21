@@ -9,19 +9,29 @@ public class Face
    private FaceMesh m_Mesh;
    private int m_NumPoints;
    private Vector3 m_Normal;
+   public Vector3 NormalWorld { get; private set; }
 
    private IEdgeEnumerator m_LoopEnumerator;
 
    private Edge m_Head;
 
    private List<Vector3> m_Points;
+   private List<int> m_PointIndicies;
+
+   private List<Vector3> m_WorldPoints;
 
    public Shape OwnerShape { get { return m_Owner; } }
 
    public Face()
    {
       m_Points = new List<Vector3>(10);
+      m_PointIndicies = new List<int>(10);
       m_LoopEnumerator = new EdgeLoopEnumerator();
+   }
+
+   public void UpdateWorldNormal()
+   {
+      NormalWorld = m_Owner.transform.TransformDirection(m_Normal);
    }
 
    public void Init(Edge head, int numPoints, Vector3 normal)
@@ -31,19 +41,26 @@ public class Face
       m_Normal = normal;
    }
 
+   public bool IsAbovePoint(Vector3 Pws, out float amountAbove)
+   {
+      var P0 = m_WorldPoints[m_PointIndicies[0]];
+      amountAbove = Vector3.Dot(P0 - Pws, NormalWorld);
+      return (amountAbove > 0.0f);
+   }
+
    public bool IsCollidedWithEdge(Vector3 P0ws, Vector3 P1ws, out Vector3 collPoint)
    {
-      var localP0 = m_Owner.transform.InverseTransformPoint(P0ws);
-      var localP1 = m_Owner.transform.InverseTransformPoint(P1ws);
-
-      if (Utils.LinePlaneIntersect(m_Normal, m_Points[0], localP0, localP1, out collPoint))
+      if (Utils.LinePlaneIntersect(NormalWorld, m_WorldPoints[m_PointIndicies[0]], P0ws, P1ws, out collPoint))
       {
-         for (int i = 0; i < m_Points.Count; i++)
+         for (int i = 0; i < m_PointIndicies.Count; i++)
          {
-            var next = (i + 1) % m_Points.Count;
+            var next = (i + 1) % m_PointIndicies.Count;
 
-            var n = Vector3.Cross(m_Points[next] - m_Points[i], m_Normal);
-            var toP = collPoint - m_Points[i];
+            var Pi = m_WorldPoints[m_PointIndicies[i]];
+            var Pnext = m_WorldPoints[m_PointIndicies[next]];
+
+            var n = Vector3.Cross(Pnext - Pi, NormalWorld);
+            var toP = collPoint - Pi;
 
             if (Vector3.Dot(n, toP) > 0.0f)
                return false;
@@ -61,6 +78,7 @@ public class Face
          owner.Faces.Add(this);
       }
       m_Owner = owner;
+      m_WorldPoints = owner.WorldPoints;
    }
 
    public void SplitInHalf(Edge e1, Edge e2) // edges that form split with next
@@ -255,10 +273,14 @@ public class Face
       m_Mesh.transform.localRotation = Quaternion.identity;
 
       m_Points.Clear();
+      m_PointIndicies.Clear();
 
       m_LoopEnumerator.Init(m_Head);
       for (var e = m_LoopEnumerator.First(); e != null; e = m_LoopEnumerator.Next())
+      {
          m_Points.Add(e.End.Point);
+         m_PointIndicies.Add(e.End.Index);
+      }
 
       m_Mesh.SetVerts(m_Points);
       m_Mesh.SetNormal(m_Normal);

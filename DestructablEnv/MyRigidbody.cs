@@ -28,6 +28,7 @@ public class MyRigidbody : MonoBehaviour
    public float Drag { get { return m_Drag; } set { m_Drag = value; } }
 
    private Collision m_Collision;
+   private Shape m_Shape;
 
    private void Awake()
    {
@@ -36,7 +37,7 @@ public class MyRigidbody : MonoBehaviour
 
    public void Init()
    {
-      var shape = GetComponent<Shape>();
+      m_Shape = GetComponent<Shape>();
 
       var Ixx = 0.0f;
       var Iyy = 0.0f;
@@ -46,9 +47,9 @@ public class MyRigidbody : MonoBehaviour
       var Ixz = 0.0f;
       var Iyz = 0.0f;
 
-      for (int i = 0; i < shape.Points.Count; i++)
+      for (int i = 0; i < m_Shape.Points.Count; i++)
       {
-         var P = shape.Points[i];
+         var P = m_Shape.Points[i];
 
          Ixx += (P.y * P.y + P.z * P.z);
          Iyy += (P.x * P.x + P.z * P.z);
@@ -109,11 +110,8 @@ public class MyRigidbody : MonoBehaviour
    private void Integrate(Vector3 forcesWorld, Vector3 momentsLocal)
    {
       VelocityWorld += (forcesWorld / Mass) * Time.deltaTime;
-      transform.position += VelocityWorld * Time.deltaTime;
 
-      AngularVelocityLocal += (Vector3)(InertiaInverse * momentsLocal * Time.deltaTime);
-      var q = transform.rotation;
-      transform.rotation = QAdd(q, QMul(q * AngularVelAsQuat(), 0.5f * Time.deltaTime));
+      AngularVelocityLocal += (InertiaInverse * momentsLocal) * Time.deltaTime;
    }
 
    private void ApplyImpulse()
@@ -123,6 +121,16 @@ public class MyRigidbody : MonoBehaviour
       var r = m_Collision.GetCollisionPointLocal(this);
       var J = m_Collision.GetImpulseLocal(this);
       AngularVelocityLocal += (Vector3)(InertiaInverse * Vector3.Cross(r, J));
+   }
+
+   private void UpdateTransform()
+   {
+      transform.position += VelocityWorld * Time.deltaTime;
+
+      var q = transform.rotation;
+      transform.rotation = QAdd(q, QMul(q * AngularVelAsQuat(), 0.5f * Time.deltaTime));
+
+      m_Shape.UpdateWorldPoints();
    }
 
    public void UpdateSimulation()
@@ -138,6 +146,8 @@ public class MyRigidbody : MonoBehaviour
          ApplyImpulse();
          m_Collision = null;
       }
+
+      UpdateTransform();
    }
 
    public Vector3 VelocityWorldAtPoint(Vector3 pointWorld)
