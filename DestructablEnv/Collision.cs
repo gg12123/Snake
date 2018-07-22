@@ -25,12 +25,12 @@ public class Collision
 
    public Vector3 GetImpulseLocal(MyRigidbody body)
    {
-      return body == m_Body2 ? m_J * m_CollisionNormalBody1Local : -m_J * m_CollisionNormalBody2Local;
+      return body == m_Body2 ? m_J * m_CollisionNormalBody2Local : -m_J * m_CollisionNormalBody1Local;
    }
 
    public Vector3 GetCollisionPointLocal(MyRigidbody body)
    {
-      return body == m_Body2 ? m_CollisionPointBody1Local : m_CollisionPointBody2Local;
+      return body == m_Body2 ? m_CollisionPointBody2Local : m_CollisionPointBody1Local;
    }
 
    private float CalculateS(Vector3 n, Vector3 r, MyRigidbody body)

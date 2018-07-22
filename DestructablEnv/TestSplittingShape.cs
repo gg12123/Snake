@@ -12,7 +12,7 @@ public class TestSplittingShape : MonoBehaviour
       if (Input.GetKeyDown(KeyCode.Space))
       {
          var shape = GetComponentInChildren<Shape>();
-         shape.Split(RndVec, RndVec.normalized);
+        // shape.Split(RndVec, RndVec.normalized);
       }
    }
 }

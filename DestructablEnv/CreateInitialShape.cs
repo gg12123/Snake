@@ -8,18 +8,19 @@ public class CreateInitialShape : MonoBehaviour
    public class ShapeParams
    {
       public Vector3 Position;
+      public Vector3 Scale;
       public float Drag;
    }
 
    [SerializeField]
-   private ShapeParams[] m_Positions;
+   private ShapeParams[] m_Params;
 
    private Shape m_Shape;
 
    // Use this for initialization
    void Awake ()
    {
-      for (int i = 0; i < m_Positions.Length; i++)
+      for (int i = 0; i < m_Params.Length; i++)
          CreateShape(i);
    }
 
@@ -27,15 +28,17 @@ public class CreateInitialShape : MonoBehaviour
    {
       m_Shape = GetComponent<ShapePool>().GetShape();
 
-      var P0 = new ShapePoint(new Vector3(1.0f, 1.0f, 1.0f));
-      var P1 = new ShapePoint(new Vector3(-1.0f, 1.0f, 1.0f));
-      var P2 = new ShapePoint(new Vector3(-1.0f, 1.0f, -1.0f));
-      var P3 = new ShapePoint(new Vector3(1.0f, 1.0f, -1.0f));
+      var s = m_Params[i].Scale;
 
-      var P4 = new ShapePoint(new Vector3(1.0f, -1.0f, 1.0f));
-      var P5 = new ShapePoint(new Vector3(-1.0f, -1.0f, 1.0f));
-      var P6 = new ShapePoint(new Vector3(-1.0f, -1.0f, -1.0f));
-      var P7 = new ShapePoint(new Vector3(1.0f, -1.0f, -1.0f));
+      var P0 = new ShapePoint(new Vector3(s.x, s.y, s.z));
+      var P1 = new ShapePoint(new Vector3(-s.x, s.y, s.z));
+      var P2 = new ShapePoint(new Vector3(-s.x, s.y, -s.z));
+      var P3 = new ShapePoint(new Vector3(s.x, s.y, -s.z));
+
+      var P4 = new ShapePoint(new Vector3(s.x, -s.y, s.z));
+      var P5 = new ShapePoint(new Vector3(-s.x, -s.y, s.z));
+      var P6 = new ShapePoint(new Vector3(-s.x, -s.y, -s.z));
+      var P7 = new ShapePoint(new Vector3(s.x, -s.y, -s.z));
 
       var P0P4pair = new EdgePair(null, null);
       var P1P5pair = new EdgePair(null, null);
@@ -80,8 +83,8 @@ public class CreateInitialShape : MonoBehaviour
 
       foreach (var pair in m_Shape.EdgePairs)
       {
-         m_Shape.EdgePoints.Add(pair.Edge1.Start.Index);
-         m_Shape.EdgePoints.Add(pair.Edge1.End.Index);
+         m_Shape.EdgePointIndicies.Add(pair.Edge1.Start.Index);
+         m_Shape.EdgePointIndicies.Add(pair.Edge1.End.Index);
       }
 
       m_Shape.EnsureWorldPointsListIsBigEnough();
@@ -90,10 +93,10 @@ public class CreateInitialShape : MonoBehaviour
       foreach (var face in m_Shape.Faces)
          face.AddMesh(meshPool);
 
-      m_Shape.transform.position = m_Positions[i].Position;
+      m_Shape.transform.position = m_Params[i].Position;
       m_Shape.transform.rotation = Quaternion.identity;
       m_Shape.UpdateWorldPoints();
-      m_Shape.GetComponent<MyRigidbody>().Drag = m_Positions[i].Drag;
+      m_Shape.GetComponent<MyRigidbody>().Drag = m_Params[i].Drag;
    }
 
    private void ConstructFace(EdgePair P0P1pair, EdgePair P2P3Pair,

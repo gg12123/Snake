@@ -10,6 +10,7 @@ public class Face
    private int m_NumPoints;
    private Vector3 m_Normal;
    public Vector3 NormalWorld { get; private set; }
+   public Vector3 P0World { get { return m_OwnersWorldPoints[m_PointIndicies[0]]; } }
 
    private IEdgeEnumerator m_LoopEnumerator;
 
@@ -18,7 +19,7 @@ public class Face
    private List<Vector3> m_Points;
    private List<int> m_PointIndicies;
 
-   private List<Vector3> m_WorldPoints;
+   private List<Vector3> m_OwnersWorldPoints;
 
    public Shape OwnerShape { get { return m_Owner; } }
 
@@ -43,29 +44,48 @@ public class Face
 
    public bool IsAbovePoint(Vector3 Pws, out float amountAbove)
    {
-      var P0 = m_WorldPoints[m_PointIndicies[0]];
+      var P0 = m_OwnersWorldPoints[m_PointIndicies[0]];
       amountAbove = Vector3.Dot(P0 - Pws, NormalWorld);
       return (amountAbove > 0.0f);
    }
 
-   public bool IsCollidedWithEdge(Vector3 P0ws, Vector3 P1ws, out Vector3 collPoint)
+   public bool IsCollidedWithEdge(Vector3 P0ws, Vector3 P1ws, ref Vector3 collPoint, ref Vector3 collNormal)
    {
-      if (Utils.LinePlaneIntersect(NormalWorld, m_WorldPoints[m_PointIndicies[0]], P0ws, P1ws, out collPoint))
+      var closestEdge = -1;
+      var closestComp = Mathf.NegativeInfinity;
+
+      if (Utils.LinePlaneIntersect(NormalWorld, m_OwnersWorldPoints[m_PointIndicies[0]], P0ws, P1ws, out collPoint))
       {
          for (int i = 0; i < m_PointIndicies.Count; i++)
          {
             var next = (i + 1) % m_PointIndicies.Count;
 
-            var Pi = m_WorldPoints[m_PointIndicies[i]];
-            var Pnext = m_WorldPoints[m_PointIndicies[next]];
+            var Pi = m_OwnersWorldPoints[m_PointIndicies[i]];
+            var Pnext = m_OwnersWorldPoints[m_PointIndicies[next]];
 
             var n = Vector3.Cross(Pnext - Pi, NormalWorld);
             var toP = collPoint - Pi;
 
-            if (Vector3.Dot(n, toP) > 0.0f)
+            var comp = Vector3.Dot(n, toP);
+
+            if (comp <= 0.0f)
+            {
+               if (comp > closestComp)
+               {
+                  closestComp = comp;
+                  closestEdge = i;
+               }
+            }
+            else
+            {
                return false;
+            }
          }
-         collPoint = m_Owner.transform.TransformPoint(collPoint);
+
+         var Pc = m_OwnersWorldPoints[m_PointIndicies[closestEdge]];
+         var PcNext = m_OwnersWorldPoints[m_PointIndicies[(closestEdge + 1) % m_PointIndicies.Count]];
+
+         collNormal = Vector3.Cross(P0ws - P1ws, Pc - PcNext).normalized;
          return true;
       }
       return false;
@@ -78,7 +98,7 @@ public class Face
          owner.Faces.Add(this);
       }
       m_Owner = owner;
-      m_WorldPoints = owner.WorldPoints;
+      m_OwnersWorldPoints = owner.WorldPoints;
    }
 
    public void SplitInHalf(Edge e1, Edge e2) // edges that form split with next

@@ -28,7 +28,6 @@ public class MyRigidbody : MonoBehaviour
    public float Drag { get { return m_Drag; } set { m_Drag = value; } }
 
    private Collision m_Collision;
-   private Shape m_Shape;
 
    private void Awake()
    {
@@ -37,8 +36,6 @@ public class MyRigidbody : MonoBehaviour
 
    public void Init()
    {
-      m_Shape = GetComponent<Shape>();
-
       var Ixx = 0.0f;
       var Iyy = 0.0f;
       var Izz = 0.0f;
@@ -47,9 +44,9 @@ public class MyRigidbody : MonoBehaviour
       var Ixz = 0.0f;
       var Iyz = 0.0f;
 
-      for (int i = 0; i < m_Shape.Points.Count; i++)
+      for (int i = 0; i < Shape.Points.Count; i++)
       {
-         var P = m_Shape.Points[i];
+         var P = Shape.Points[i];
 
          Ixx += (P.y * P.y + P.z * P.z);
          Iyy += (P.x * P.x + P.z * P.z);
@@ -130,7 +127,7 @@ public class MyRigidbody : MonoBehaviour
       var q = transform.rotation;
       transform.rotation = QAdd(q, QMul(q * AngularVelAsQuat(), 0.5f * Time.deltaTime));
 
-      m_Shape.UpdateWorldPoints();
+      Shape.UpdateWorldPoints();
    }
 
    public void UpdateSimulation()
