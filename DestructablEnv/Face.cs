@@ -205,23 +205,42 @@ public class Face
 
    private Edge NormalSplit(Vector3 n, Vector3 P0, Edge start, Edge end)
    {
-      Vector3 intPoint;
       Edge next = null; // must form split with next
+
+      var Pprev = start.Start.Point;
+      var compPrev = Vector3.Dot(n, P0 - Pprev);
 
       for (Edge curr = start; curr != end; curr = curr.Next)
       {
-         if (Utils.PointIsInPlane(n, P0, curr.End.Point))
+         var P = curr.End.Point;
+         var comp = Vector3.Dot(n, P0 - P);
+
+         if (comp * compPrev <= 0.0f)
          {
-            next = FormSplitAtPoint(n, P0, curr);
-            SplitInHalf(end, curr);
-            break;
+            if (Mathf.Abs(comp) <= Utils.PointInPlaneTol)
+            {
+               next = FormSplitAtPoint(n, P0, curr);
+               SplitInHalf(end, curr);
+               break;
+            }
+            else if (Mathf.Abs(compPrev) <= Utils.PointInPlaneTol)
+            {
+               next = FormSplitAtPoint(n, P0, curr.Prev);
+               SplitInHalf(end, curr);
+               break;
+            }
+            else
+            {
+               Vector3 intPoint;
+               Utils.LinePlaneIntersect(n, P0, Pprev, P, out intPoint);
+               next = FormSplitOnEdge(curr, intPoint);
+               SplitInHalf(end, curr);
+               break;
+            }
          }
-         else if (Utils.LinePlaneIntersect(n, P0, curr.Start.Point, curr.End.Point, out intPoint))
-         {
-            next = FormSplitOnEdge(curr, intPoint);
-            SplitInHalf(end, curr);
-            break;
-         }
+
+         compPrev = comp;
+         Pprev = P;
       }
 
       return next;

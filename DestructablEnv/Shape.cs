@@ -134,37 +134,34 @@ public class Shape : MonoBehaviour
       return centre / pairs.Count;
    }
 
-   private void FindStartFaceAndEdge(Vector3 P0, Vector3 n, out Edge startEdge, out Edge startEdgeOnStartFace, out Face startFace)
+   private void FindStartFaceAndEdge(Vector3 P0, Vector3 collNormal, out Edge startEdge, out Edge startEdgeOnStartFace, out Face startFace, out Vector3 n)
    {
-      Vector3 intPoint;
+      var found = false;
 
+      n = Vector3.zero;
+      startEdge = startEdgeOnStartFace = null;
       startFace = null;
-      startEdge = null;
-      startEdgeOnStartFace = null;
 
-      for (int i = 0; i < EdgePairs.Count; i++)
+      while (!found)
       {
-         var edge = EdgePairs[i].Edge1;
+         var edge = EdgePairs[Random.Range(0, EdgePairs.Count)].Edge1;
+         var mid = (edge.Start.Point + edge.End.Point) / 2.0f;
 
-         if (Utils.LinePlaneIntersect(n, P0, edge.Start.Point, edge.End.Point, out intPoint))
+         if (Vector3.Distance(P0, mid) > 0.01)
          {
-            startFace = edge.OwnerFace;
-            if (Utils.PointIsInPlane(n, P0, edge.Start.Point))
+            var toP0 = (P0 - mid).normalized;
+            var edgeDir = (edge.Start.Point - edge.End.Point).normalized;
+
+            if (Mathf.Abs(Vector3.Dot(toP0, edgeDir)) < 0.9f)
             {
-               startEdgeOnStartFace = edge.Prev;
-               startEdge = Face.FormSplitAtPoint(n, P0, startEdgeOnStartFace);
-            }
-            else if (Utils.PointIsInPlane(n, P0, edge.End.Point))
-            {
+               found = true;
+
+               n = Vector3.Cross(collNormal, toP0).normalized;
+
+               startFace = edge.OwnerFace;
                startEdgeOnStartFace = edge;
-               startEdge = Face.FormSplitAtPoint(n, P0, startEdgeOnStartFace);
+               startEdge = Face.FormSplitOnEdge(edge, mid);
             }
-            else
-            {
-               startEdgeOnStartFace = edge;
-               startEdge = Face.FormSplitOnEdge(edge, intPoint);
-            }
-            break;
          }
       }
    }
@@ -177,13 +174,13 @@ public class Shape : MonoBehaviour
       startFace.DetachEdge(toDetach);
    }
 
-   private void SplitFacesAndEdges(Vector3 P0, Vector3 n, out Edge ePointsToOpen1, out Edge ePointsToOpen2)
+   private void SplitFacesAndEdges(Vector3 P0, Vector3 collNormal, out Edge ePointsToOpen1, out Edge ePointsToOpen2, out Vector3 n)
    {
       Face startFace;
       Edge startEdge;
       Edge startEdgeStartFace;
 
-      FindStartFaceAndEdge(P0, n, out startEdge, out startEdgeStartFace, out startFace);
+      FindStartFaceAndEdge(P0, collNormal, out startEdge, out startEdgeStartFace, out startFace, out n);
 
       var curr = startEdge;
 
@@ -218,12 +215,16 @@ public class Shape : MonoBehaviour
       EdgePairs.Clear();
    }
 
-   public void Split(Vector3 P0, Vector3 n, Shape shapeAbove, Shape shapeBelow)
+   public void Split(Vector3 collPointWs, Vector3 collNormalWs, Shape shapeAbove, Shape shapeBelow)
    {
+      var P0 = transform.InverseTransformPoint(collPointWs);
+      var collNormalLocal = transform.InverseTransformDirection(collNormalWs);
+
       Edge pointsToOpen1;
       Edge pointsToOpen2;
+      Vector3 n;
 
-      SplitFacesAndEdges(P0, n, out pointsToOpen1, out pointsToOpen2);
+      SplitFacesAndEdges(P0, collNormalLocal, out pointsToOpen1, out pointsToOpen2, out n);
 
       shapeAbove.ClearData();
       shapeBelow.ClearData();

@@ -78,15 +78,12 @@ public class PhysicsManager : MonoBehaviour
       }
    }
 
-   private void DoSplit(Vector3 P0Ws, Vector3 nWs, MyRigidbody toSplit)
+   private void DoSplit(Vector3 collPointWs, Vector3 collNormalWs, MyRigidbody toSplit)
    {
       var above = m_Pool.GetBody();
       var below = m_Pool.GetBody();
 
-      var P0Local = toSplit.transform.InverseTransformPoint(P0Ws);
-      var nLocal = toSplit.transform.InverseTransformDirection(nWs);
-
-      toSplit.Shape.Split(P0Local, nLocal, above.Shape, below.Shape);
+      toSplit.Shape.Split(collPointWs, collNormalWs, above.Shape, below.Shape);
 
       above.Init();
       below.Init();
