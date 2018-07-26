@@ -16,73 +16,17 @@ public class EdgePair
    {
       Edge1 = new Edge(this, edge1Face);
       Edge2 = new Edge(this, edge2Face);
+
+      Edge1.InitOther(Edge2);
+      Edge2.InitOther(Edge1);
+
       m_Owner = null;
    }
 
-   public ShapePoint GetStart(Edge getter)
+   public void RefreshPoints()
    {
-      if (getter == Edge1)
-      {
-         return m_StartFor1;
-      }
-      else if (getter == Edge2)
-      {
-         return m_EndFor1;
-      }
-      else
-      {
-         Debug.LogError("Unkown edge trying to get on pair");
-         return null;
-      }
-   }
-
-   public ShapePoint GetEnd(Edge getter)
-   {
-      if (getter == Edge1)
-      {
-         return m_EndFor1;
-      }
-      else if (getter == Edge2)
-      {
-         return m_StartFor1;
-      }
-      else
-      {
-         Debug.LogError("Unkown edge trying to get on pair");
-         return null;
-      }
-   }
-
-   public void SetStart(Edge setter, ShapePoint val)
-   {
-      if (setter == Edge1)
-      {
-         m_StartFor1 = val;
-      }
-      else if (setter == Edge2)
-      {
-         m_EndFor1 = val;
-      }
-      else
-      {
-         Debug.LogError("Unkown edge trying to set on pair");
-      }
-   }
-
-   public void SetEnd(Edge setter, ShapePoint val)
-   {
-      if (setter == Edge1)
-      {
-         m_EndFor1 = val;
-      }
-      else if (setter == Edge2)
-      {
-         m_StartFor1 = val;
-      }
-      else
-      {
-         Debug.LogError("Unkown edge trying to set on pair");
-      }
+      m_StartFor1 = Edge1.Start;
+      m_EndFor1 = Edge1.End;
    }
 
    public Vector3 Midpoint()
@@ -109,21 +53,5 @@ public class EdgePair
 
       owner.EdgePointIndicies.Add(m_EndFor1.Index);
       owner.EdgePointIndicies.Add(m_StartFor1.Index);
-   }
-
-   public Edge Other(Edge e)
-   {
-      if (e == Edge1)
-      {
-         return Edge2;
-      }
-      else if (e == Edge2)
-      {
-         return Edge1;
-      }
-      else
-      {
-         throw new System.Exception("Cannot get to other on edge pair");
-      }
    }
 }

@@ -27,15 +27,27 @@ public class MyRigidbody : MonoBehaviour
    public Matrix3 InertiaInverse { get { return m_InertiaInv; } }
    public float Drag { get { return m_Drag; } set { m_Drag = value; } }
 
-   private Collision m_Collision;
+   private Impulse m_Impulse;
+
+   private PhysicsManager m_Physics;
 
    private void Awake()
    {
       Shape = GetComponent<Shape>();
+      m_Physics = GetComponentInParent<PhysicsManager>();
+   }
+
+   public void Init(MyRigidbody body)
+   {
+      VelocityWorld = body.VelocityWorld;
+      AngularVelocityLocal = body.AngularVelocityLocal;
+      Init();
    }
 
    public void Init()
    {
+      // use the bounding box for mass and inertia
+
       var Ixx = 0.0f;
       var Iyy = 0.0f;
       var Izz = 0.0f;
@@ -74,9 +86,9 @@ public class MyRigidbody : MonoBehaviour
       m_InertiaInv = m_Inertia.Inverse();
    }
 
-   public void SetCollision(Collision col)
+   public void SetImpulse(Impulse i)
    {
-      m_Collision = col;
+      m_Impulse = i;
    }
 
    private void CalculateForces(out Vector3 forcesWorld, out Vector3 momentsLocal)
@@ -113,11 +125,16 @@ public class MyRigidbody : MonoBehaviour
 
    private void ApplyImpulse()
    {
-      VelocityWorld += m_Collision.GetImpulseWorld(this) / Mass;
+      VelocityWorld += m_Impulse.WorldImpulse / Mass; // m_Collision.GetImpulseWorld(this) / Mass;
 
-      var r = m_Collision.GetCollisionPointLocal(this);
-      var J = m_Collision.GetImpulseLocal(this);
-      AngularVelocityLocal += (Vector3)(InertiaInverse * Vector3.Cross(r, J));
+      var r = transform.InverseTransformPoint(m_Impulse.WorldCollisionPoint); // m_Collision.GetCollisionPointLocal(this);
+      var J = m_Impulse.LocalImpulse; // m_Collision.GetImpulseLocal(this);
+      AngularVelocityLocal += (InertiaInverse * Vector3.Cross(r, J));
+
+      UpdateTransform();
+
+      if (m_Impulse.Impact > Mass)
+         m_Physics.DoSplit(this, m_Impulse);
    }
 
    private void UpdateTransform()
@@ -130,21 +147,25 @@ public class MyRigidbody : MonoBehaviour
       Shape.UpdateWorldPoints();
    }
 
+   private void DoNormalMotion()
+   {
+      Vector3 f, m;
+      CalculateForces(out f, out m);
+      Integrate(f, m);
+      UpdateTransform();
+   }
+
    public void UpdateSimulation()
    {
-      if (m_Collision == null)
+      if (m_Impulse == null)
       {
-         Vector3 f, m;
-         CalculateForces(out f, out m);
-         Integrate(f, m);
+         DoNormalMotion();
       }
       else
       {
          ApplyImpulse();
-         m_Collision = null;
+         m_Impulse = null;
       }
-
-      UpdateTransform();
    }
 
    public Vector3 VelocityWorldAtPoint(Vector3 pointWorld)

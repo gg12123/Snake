@@ -10,6 +10,9 @@ public class PhysicsManager : MonoBehaviour
    private List<Vector3> m_CollPoints = new List<Vector3>();
    private List<Vector3> m_CollNormals = new List<Vector3>();
 
+   private List<MyRigidbody> m_ToRemove = new List<MyRigidbody>();
+   private List<MyRigidbody> m_ToAdd = new List<MyRigidbody>();
+
    private RigidBodyPool m_Pool;
 
    // Use this for initialization
@@ -78,19 +81,22 @@ public class PhysicsManager : MonoBehaviour
       }
    }
 
-   private void DoSplit(Vector3 collPointWs, Vector3 collNormalWs, MyRigidbody toSplit)
+   public void DoSplit(MyRigidbody toSplit, Impulse impulse)
    {
       var above = m_Pool.GetBody();
       var below = m_Pool.GetBody();
 
-      toSplit.Shape.Split(collPointWs, collNormalWs, above.Shape, below.Shape);
+      toSplit.Shape.Split(impulse.WorldCollisionPoint, impulse.WorldImpulse.normalized, above.Shape, below.Shape);
 
-      above.Init();
-      below.Init();
+      above.Init(toSplit);
+      below.Init(toSplit);
 
-      m_Bodies.Remove(toSplit);
-      m_Bodies.Add(above);
-      m_Bodies.Add(below);
+      above.SetImpulse(impulse);
+      below.SetImpulse(impulse);
+
+      m_ToRemove.Add(toSplit);
+      m_ToAdd.Add(above);
+      m_ToAdd.Add(below);
 
       m_Pool.Return(toSplit);
    }
@@ -100,11 +106,24 @@ public class PhysicsManager : MonoBehaviour
       for (int i = 0; i < m_Bodies.Count; i++)
          m_Bodies[i].UpdateSimulation();
    }
+
+   private void AddAndRemoveBodies()
+   {
+      foreach (var b in m_ToRemove)
+         m_Bodies.Remove(b);
+
+      foreach (var b in m_ToAdd)
+         m_Bodies.Add(b);
+
+      m_ToRemove.Clear();
+      m_ToAdd.Clear();
+   }
    
    // Update is called once per frame
    void FixedUpdate ()
    {
       DetectCollisions();
       UpdateBodies();
+      AddAndRemoveBodies();
    }
 }

@@ -4,21 +4,64 @@ using UnityEngine;
 
 public class Edge
 {
+   private ShapePoint m_Start;
+   private ShapePoint m_End;
+
    public Face OwnerFace { get; set; }
    public EdgePair OwnerPair { get; private set; }
-
-   public ShapePoint Start { get { return OwnerPair.GetStart(this); } set { OwnerPair.SetStart(this, value); } }
-   public ShapePoint End { get { return OwnerPair.GetEnd(this); } set { OwnerPair.SetEnd(this, value); } }
 
    public Edge Next { get; private set; }
    public Edge Prev { get; private set; }
 
-   public Edge Other { get { return OwnerPair.Other(this); } }
+   public Edge Other { get; private set; }
+
+   public ShapePoint Start
+   {
+      get
+      {
+         return m_Start;
+      }
+      set
+      {
+         m_Start = value;
+         Other.OnOthersStartSet(value);
+         OwnerPair.RefreshPoints();
+      }
+   }
+
+   public ShapePoint End
+   {
+      get
+      {
+         return m_End;
+      }
+      set
+      {
+         m_End = value;
+         Other.OnOthersEndSet(value);
+         OwnerPair.RefreshPoints();
+      }
+   }
 
    public Edge(EdgePair pair, Face ownerFace)
    {
       OwnerPair = pair;
       OwnerFace = ownerFace;
+   }
+
+   public void OnOthersStartSet(ShapePoint othersStart)
+   {
+      m_End = othersStart;
+   }
+
+   public void OnOthersEndSet(ShapePoint othersEnd)
+   {
+      m_Start = othersEnd;
+   }
+
+   public void InitOther(Edge other)
+   {
+      Other = other;
    }
 
    public void InsertAfter(Edge toInsert)

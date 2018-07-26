@@ -2,35 +2,35 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public class Impulse
+{
+   public Vector3 WorldImpulse { get; private set; }
+   public Vector3 LocalImpulse { get; private set; }
+   public Vector3 WorldCollisionPoint { get; private set; }
+   public Vector3 LocalCollisionPoint { get; private set; }
+   public float Impact { get; private set; }
+
+   public void Set(Vector3 worldImpulse, Vector3 localImpulse, Vector3 collPointWorld, Vector3 collPointLocal, float impact)
+   {
+      WorldImpulse = worldImpulse;
+      LocalImpulse = localImpulse;
+      WorldCollisionPoint = collPointWorld;
+      LocalCollisionPoint = collPointLocal;
+      Impact = impact;
+   }
+}
+
 public class Collision
 {
    private const float e = 0.8f;
 
-   private Vector3 m_CollisionNormalWorld;
-   private Vector3 m_CollisionNormalBody1Local;
-   private Vector3 m_CollisionNormalBody2Local;
+   public Impulse Body1Impulse { get; private set; }
+   public Impulse Body2Impulse { get; private set; }
 
-   private Vector3 m_CollisionPointBody1Local;
-   private Vector3 m_CollisionPointBody2Local;
-
-   private float m_J;
-
-   private MyRigidbody m_Body1;
-   private MyRigidbody m_Body2;
-
-   public Vector3 GetImpulseWorld(MyRigidbody body)
+   public Collision()
    {
-      return body == m_Body2 ? m_J * m_CollisionNormalWorld : -m_J * m_CollisionNormalWorld;
-   }
-
-   public Vector3 GetImpulseLocal(MyRigidbody body)
-   {
-      return body == m_Body2 ? m_J * m_CollisionNormalBody2Local : -m_J * m_CollisionNormalBody1Local;
-   }
-
-   public Vector3 GetCollisionPointLocal(MyRigidbody body)
-   {
-      return body == m_Body2 ? m_CollisionPointBody2Local : m_CollisionPointBody1Local;
+      Body1Impulse = new Impulse();
+      Body2Impulse = new Impulse();
    }
 
    private float CalculateS(Vector3 n, Vector3 r, MyRigidbody body)
@@ -46,30 +46,31 @@ public class Collision
 
       var vr = v2 - v1;
 
-      if (Vector3.Dot(vr, collNormalWorld1To2) < 0.0f)
+      var signedImpact = Vector3.Dot(vr, collNormalWorld1To2);
+
+      if (signedImpact < 0.0f)
       {
          var r1 = body1.transform.InverseTransformPoint(collPointWorld);
          var r2 = body2.transform.InverseTransformPoint(collPointWorld);
 
-         m_CollisionNormalWorld = collNormalWorld1To2;
-         m_CollisionNormalBody1Local = body1.transform.InverseTransformDirection(collNormalWorld1To2);
-         m_CollisionNormalBody2Local = body2.transform.InverseTransformDirection(collNormalWorld1To2);
+         var collisionNormalBody1Local = body1.transform.InverseTransformDirection(collNormalWorld1To2);
+         var collisionNormalBody2Local = body2.transform.InverseTransformDirection(collNormalWorld1To2);
 
-         var s1 = CalculateS(m_CollisionNormalBody1Local, r1, body1);
-         var s2 = CalculateS(m_CollisionNormalBody2Local, r2, body2);
+         var s1 = CalculateS(collisionNormalBody1Local, r1, body1);
+         var s2 = CalculateS(collisionNormalBody2Local, r2, body2);
 
          var m1 = body1.Mass;
          var m2 = body2.Mass;
 
-         m_J = (-Vector3.Dot(vr, m_CollisionNormalWorld) * (e + 1.0f)) / (1.0f / m1 + 1.0f / m2 + s1 + s2);
+         var J = (-signedImpact * (e + 1.0f)) / (1.0f / m1 + 1.0f / m2 + s1 + s2);
 
-         m_Body1 = body1;
-         m_Body2 = body2;
-         m_CollisionPointBody1Local = r1;
-         m_CollisionPointBody2Local = r2;
+         var impact = -signedImpact;
 
-         m_Body1.SetCollision(this);
-         m_Body2.SetCollision(this);
+         Body1Impulse.Set(-J * collNormalWorld1To2, -J * collisionNormalBody1Local, collPointWorld, r1, impact);
+         Body2Impulse.Set(J * collNormalWorld1To2, J * collisionNormalBody2Local, collPointWorld, r2, impact);
+
+         body1.SetImpulse(Body1Impulse);
+         body2.SetImpulse(Body2Impulse);
       }
    }
 }
