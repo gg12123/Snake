@@ -8,7 +8,7 @@ public class Face
    private Shape m_Owner;
    private FaceMesh m_Mesh;
    private int m_NumPoints;
-   private Vector3 m_Normal;
+   public Vector3 Normal { get; private set; }
    public Vector3 NormalWorld { get; private set; }
    public Vector3 P0World { get { return m_OwnersWorldPoints[m_PointIndicies[0]]; } }
 
@@ -32,14 +32,14 @@ public class Face
 
    public void UpdateWorldNormal()
    {
-      NormalWorld = m_Owner.transform.TransformDirection(m_Normal);
+      NormalWorld = m_Owner.transform.TransformDirection(Normal);
    }
 
    public void Init(Edge head, int numPoints, Vector3 normal)
    {
       m_Head = head;
       m_NumPoints = numPoints;
-      m_Normal = normal;
+      Normal = normal;
    }
 
    public bool IsAbovePoint(Vector3 Pws, out float amountAbove)
@@ -129,8 +129,8 @@ public class Face
       var newFacePointCount = InitOwnerFaceAndCountPoints(eNew, newFace);
       var thisPointCount = m_NumPoints - newFacePointCount + 2;
 
-      newFace.Init(eNew, newFacePointCount, m_Normal);
-      Init(eThis, thisPointCount, m_Normal);
+      newFace.Init(eNew, newFacePointCount, Normal);
+      Init(eThis, thisPointCount, Normal);
 
       newFace.OnNewOwner(m_Owner);
    }
@@ -322,7 +322,7 @@ public class Face
       }
 
       m_Mesh.SetVerts(m_Points);
-      m_Mesh.SetNormal(m_Normal);
+      m_Mesh.SetNormal(Normal);
    }
 
    public void AssignToShape(Vector3 n, Vector3 P0, Shape above, Shape below)

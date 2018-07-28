@@ -13,16 +13,19 @@ public class FaceMeshPool : MonoBehaviour
 
    private Stack<FaceMesh>[] m_Meshes;
 
-   private void Awake()
+   private void Init()
    {
-      m_Meshes = new Stack<FaceMesh>[m_MaxNumVerts + 1];
-
-      for (int i = 2; i <= m_MaxNumVerts; i++)
+      if (m_Meshes == null)
       {
-         m_Meshes[i] = new Stack<FaceMesh>(m_AmountPerVertNumber);
+         m_Meshes = new Stack<FaceMesh>[m_MaxNumVerts + 1];
 
-         for (int j = 0; j < m_AmountPerVertNumber; j++)
-            m_Meshes[i].Push(CreateNew(i));
+         for (int i = 2; i <= m_MaxNumVerts; i++)
+         {
+            m_Meshes[i] = new Stack<FaceMesh>(m_AmountPerVertNumber);
+
+            for (int j = 0; j < m_AmountPerVertNumber; j++)
+               m_Meshes[i].Push(CreateNew(i));
+         }
       }
    }
 
@@ -35,6 +38,7 @@ public class FaceMeshPool : MonoBehaviour
 
    public FaceMesh GetMesh(int numPoints)
    {
+      Init();
       var meshes = m_Meshes[numPoints];
       var m = meshes.Count > 0 ? meshes.Pop() : CreateNew(numPoints);
 
@@ -44,6 +48,7 @@ public class FaceMeshPool : MonoBehaviour
 
    public void ReturnMesh(FaceMesh mesh)
    {
+      Init();
       mesh.gameObject.SetActive(false);
       mesh.transform.SetParent(transform, false);
       m_Meshes[mesh.NumPoints].Push(mesh);

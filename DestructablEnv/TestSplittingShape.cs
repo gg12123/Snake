@@ -12,7 +12,22 @@ public class TestSplittingShape : MonoBehaviour
       if (Input.GetKeyDown(KeyCode.Space))
       {
          var shape = GetComponentInChildren<Shape>();
-        // shape.Split(RndVec, RndVec.normalized);
+
+         var pool = GetComponent<RigidBodyPool>();
+
+         var above = pool.GetBody().GetComponent<Shape>();
+         var below = pool.GetBody().GetComponent<Shape>();
+
+         var e = shape.EdgePairs[Random.Range(0, shape.EdgePairs.Count)].Edge1;
+
+         var collPoint = e.Start.Point;
+         var collNormal = e.OwnerFace.Normal;
+
+         collPoint = shape.transform.TransformPoint(collPoint);
+
+         shape.Split(collPoint, collNormal, above, below);
+
+         pool.Return(shape.GetComponent<MyRigidbody>());
       }
    }
 }

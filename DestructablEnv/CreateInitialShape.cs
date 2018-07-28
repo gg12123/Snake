@@ -26,7 +26,7 @@ public class CreateInitialShape : MonoBehaviour
 
    private void CreateShape(int i)
    {
-      m_Shape = GetComponent<ShapePool>().GetShape();
+      m_Shape = GetComponent<RigidBodyPool>().GetBody().GetComponent<Shape>();
 
       var s = m_Params[i].Scale;
 

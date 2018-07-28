@@ -83,6 +83,8 @@ public class PhysicsManager : MonoBehaviour
 
    public void DoSplit(MyRigidbody toSplit, Impulse impulse)
    {
+      Debug.Log("Splitting");
+
       var above = m_Pool.GetBody();
       var below = m_Pool.GetBody();
 

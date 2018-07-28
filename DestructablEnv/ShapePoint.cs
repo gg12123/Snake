@@ -33,11 +33,16 @@ public class ShapePoint
 
    private Edge GetNextAboutPoint(Edge e)
    {
+      if (e == null || e.Next == null || e.Next.Other == null)
+         Debug.LogError("NUll");
+
       return e.Next.Other;
    }
 
    public Edge Split(Vector3 P0, Vector3 n, Edge edgeThatBridgesWithNext)
    {
+      Debug.Log("splitting about point");
+
       var e0 = edgeThatBridgesWithNext;
       var e1 = edgeThatBridgesWithNext.Next;
 
