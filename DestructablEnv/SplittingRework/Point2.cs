@@ -17,6 +17,8 @@ public class Point2
    public Point2 LinkedPoint1 { get; private set; }
    public Point2 LinkedPoint2 { get; private set; }
 
+   public int Id { get; set; }
+
    public Point2(Vector3 point)
    {
       Point = point;
@@ -62,8 +64,8 @@ public class Point2
 
    public void Split(Vector3 P0, Vector3 n, Shape2 shapeAbove, Shape2 shapeBelow, NewPointsGetter newPoints)
    {
-      m_LinkedPoint1 = null;
-      m_LinkedPoint2 = null;
+      LinkedPoint1 = null;
+      LinkedPoint2 = null;
 
       var comp = Vector3.Dot(Point - P0, n);
 
@@ -74,38 +76,44 @@ public class Point2
 
          newPoints.AddPoints(this, newAbove, newBelow);
 
-         shapeAbove.Points.Add(newAbove);
-         shapeBelow.Points.Add(newBelow);
+         shapeAbove.AddPoint(newAbove);
+         shapeBelow.AddPoint(newBelow);
 
          PlaneRelationship = PointPlaneRelationship.Inside;
       }
       else if (comp > 0.0f)
       {
-         shapeAbove.Points.Add(this);
+         shapeAbove.AddPoint(this);
       }
       else
       {
-         shapeBelow.Points.Add(this);
+         shapeBelow.AddPoint(this);
       }
    }
 
    public static bool PointsBridgePlane(Point2 p1, Point2 p2)
    {
+      if (p1.PlaneRelationship == PointPlaneRelationship.Above && p2.PlaneRelationship == PointPlaneRelationship.Below)
+         return true;
 
+      if (p2.PlaneRelationship == PointPlaneRelationship.Above && p1.PlaneRelationship == PointPlaneRelationship.Below)
+         return true;
+
+      return false;
    }
 
    public static bool BothAbove(Point2 p1, Point2 p2)
    {
-
+      return p1.PlaneRelationship == PointPlaneRelationship.Above && p2.PlaneRelationship == PointPlaneRelationship.Above;
    }
 
    public static bool BothBelow(Point2 p1, Point2 p2)
    {
-
+      return p1.PlaneRelationship == PointPlaneRelationship.Below && p2.PlaneRelationship == PointPlaneRelationship.Below;
    }
 
    public static bool BothInside(Point2 p1, Point2 p2)
    {
-
+      return p1.PlaneRelationship == PointPlaneRelationship.Inside && p2.PlaneRelationship == PointPlaneRelationship.Inside;
    }
 }

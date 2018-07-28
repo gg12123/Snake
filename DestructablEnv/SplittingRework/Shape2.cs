@@ -11,10 +11,37 @@ public class Shape2 : MonoBehaviour
    public List<Vector3> CachedPoints { get; private set; }
    public List<Vector3> CachedEdgePoints { get; private set; }
 
-   private NewPointsGetter m_NewPointsGetter = new NewPointsGetter();
    private FinalFaceCreator m_FinalFaceCreator = new FinalFaceCreator();
 
    private FaceMeshPool m_MeshPool;
+   private NewPointsGetter m_NewPointsGetter;
+
+   private int m_CurrId = 0;
+
+   private void Awake()
+   {
+      m_MeshPool = GetComponentInParent<FaceMeshPool>();
+      m_NewPointsGetter = GetComponentInParent<NewPointsGetter>();
+   }
+
+   public void Clear()
+   {
+      Faces.Clear();
+      Points.Clear();
+      Edges.Clear();
+
+      CachedPoints.Clear();
+      CachedEdgePoints.Clear();
+
+      m_CurrId = 0;
+   }
+
+   public void AddPoint(Point2 p)
+   {
+      p.Id = m_CurrId;
+      m_CurrId++;
+      Points.Add(p);
+   }
 
    public void AddNewEdgeFromFaceSplit(Edge2 e)
    {
@@ -52,10 +79,15 @@ public class Shape2 : MonoBehaviour
 
    private Vector3 CalculateCentre()
    {
+      var c = Vector3.zero;
 
+      for (int i = 0; i < Points.Count; i++)
+         c += Points[i].Point;
+
+      return c / Points.Count;
    }
 
-   private void CentreAndCache()
+   public void CentreAndCache()
    {
       var c = CalculateCentre();
 
@@ -80,6 +112,9 @@ public class Shape2 : MonoBehaviour
       var collNormalLocal = transform.InverseTransformDirection(collNormalWs);
 
       var n = CalculateSplitPlaneNormal(P0, collNormalLocal);
+
+      shapeAbove.Clear();
+      shapeBelow.Clear();
 
       foreach (var p in Points)
          p.Split(P0, n, shapeAbove, shapeBelow, m_NewPointsGetter);

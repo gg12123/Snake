@@ -5,13 +5,15 @@ using UnityEngine;
 public class Face2
 {
    private List<Point2> m_Points;
-   private List<Vector3> m_CachedPoints;
+   private List<Vector3> m_CachedPoints = new List<Vector3>();
+
    private Vector3 m_Normal;
    private FaceMesh m_Mesh;
 
    public Face2(List<Point2> points, Vector3 normal)
    {
-
+      m_Points = points;
+      m_Normal = normal;
    }
 
    public void Split(NewPointsGetter newPoints, Shape2 shapeAbove, Shape2 shapeBelow)
