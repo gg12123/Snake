@@ -22,6 +22,12 @@ public class Edge2
 
    }
 
+   public void Cache(List<Vector3> edgePoints)
+   {
+      edgePoints.Add(EdgeP1.Point);
+      edgePoints.Add(EdgeP2.Point);
+   }
+
    public void Split(Vector3 P0, Vector3 n, NewPointsGetter newPoints, Shape2 shapeAbove, Shape2 shapeBelow)
    {
       if (Point2.PointsBridgePlane(EdgeP1, EdgeP2))
@@ -33,6 +39,9 @@ public class Edge2
          var b = new Point2(x);
 
          newPoints.AddPoints(EdgeP1, EdgeP2, a, b);
+
+         shapeAbove.Points.Add(a);
+         shapeBelow.Points.Add(b);
 
          if (EdgeP1.PlaneRelationship == PointPlaneRelationship.Above)
          {
@@ -61,7 +70,7 @@ public class Edge2
       }
       else if (Point2.BothInside(EdgeP1, EdgeP2))
       {
-         // new edges for each shape will be created by the face split
+         // do nothing - new edges for each shape will be created by the face split
       }
       else if (EdgeP1.PlaneRelationship == PointPlaneRelationship.Inside)
       {

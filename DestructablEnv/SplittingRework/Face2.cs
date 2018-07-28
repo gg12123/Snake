@@ -5,14 +5,11 @@ using UnityEngine;
 public class Face2
 {
    private List<Point2> m_Points;
+   private List<Vector3> m_CachedPoints;
    private Vector3 m_Normal;
+   private FaceMesh m_Mesh;
 
    public Face2(List<Point2> points, Vector3 normal)
-   {
-
-   }
-
-   private bool PointsBridgePlane(Point2 p1, Point2 p2)
    {
 
    }
@@ -52,7 +49,7 @@ public class Face2
             newBelowEdge.AddPoint(a);
          }
 
-         if (PointsBridgePlane(p1, p2))
+         if (Point2.PointsBridgePlane(p1, p2))
          {
             var a = newPoints.GetPointAbove(p1, p2);
             var b = newPoints.GetPointBelow(p1, p2);
@@ -73,13 +70,37 @@ public class Face2
 
       if (DefinesNewFace(belowPoints))
       {
-         shapeAbove.Faces.Add(new Face2(belowPoints, m_Normal));
-         shapeAbove.AddNewEdgeFromFaceSplit(newBelowEdge);
+         shapeBelow.Faces.Add(new Face2(belowPoints, m_Normal));
+         shapeBelow.AddNewEdgeFromFaceSplit(newBelowEdge);
       }
    }
 
    private bool DefinesNewFace(List<Point2> points)
    {
       return (points.Count > 2);
+   }
+
+   public void AddMeshAndCachePoints(FaceMeshPool pool, Transform owner)
+   {
+      if (m_Mesh != null && m_Mesh.NumPoints != m_Points.Count)
+      {
+         pool.ReturnMesh(m_Mesh);
+         m_Mesh = null;
+      }
+
+      if (m_Mesh == null)
+         m_Mesh = pool.GetMesh(m_Points.Count);
+
+      m_Mesh.transform.SetParent(owner, false);
+      m_Mesh.transform.localPosition = Vector3.zero;
+      m_Mesh.transform.localRotation = Quaternion.identity;
+
+      m_CachedPoints.Clear();
+
+      for (int i = 0; i < m_Points.Count; i++)
+         m_CachedPoints.Add(m_Points[i].Point);
+
+      m_Mesh.SetVerts(m_CachedPoints);
+      m_Mesh.SetNormal(m_Normal);
    }
 }
