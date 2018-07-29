@@ -38,7 +38,7 @@ public class Pool<T> where T : MonoBehaviour
    public T GetObject()
    {
       if (m_Objects.Count == 0)
-         return (GameObject.Instantiate(m_Prefab) as GameObject).GetComponent<T>();
+         return (GameObject.Instantiate(m_Prefab, m_Parent) as GameObject).GetComponent<T>();
 
       var obj = m_Objects.Pop();
       obj.gameObject.SetActive(true);

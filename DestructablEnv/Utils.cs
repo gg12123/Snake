@@ -4,7 +4,7 @@ using UnityEngine;
 
 public static class Utils
 {
-   public const float PointInPlaneTol = 0.001f;
+   public const float PointInPlaneTol = 0.00001f;
 
    public static bool LinePlaneIntersect(Vector3 planeNormal, Vector3 planeP0, Vector3 lineP0, Vector3 lineP1, out Vector3 intPoint)
    {

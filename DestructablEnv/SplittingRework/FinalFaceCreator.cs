@@ -14,9 +14,23 @@ public class FinalFaceCreator
       m_Head = e.EdgeP1;
    }
 
+   private Point2 CalculatePrev(Vector3 finalFaceNormal)
+   {
+      var P0 = m_Head.LinkedPoint1.Point;
+      var P1 = m_Head.Point;
+      var P2 = m_Head.LinkedPoint2.Point;
+
+      var e01 = (P1 - P0).normalized;
+      var e12 = (P2 - P1).normalized;
+
+      var c = Vector3.Cross(e01, e12);
+
+      return Vector3.Dot(c, finalFaceNormal) > 0.0f ? m_Head.LinkedPoint1 : m_Head.LinkedPoint2;
+   }
+
    public Face2 Create(Vector3 finalFaceNormal)
    {
-      var prev = m_Head.LinkedPoint1; // defines loop direction - choose this based on the required winding
+      var prev = CalculatePrev(finalFaceNormal);
       var curr = m_Head;
 
       var points = new List<Point2>();

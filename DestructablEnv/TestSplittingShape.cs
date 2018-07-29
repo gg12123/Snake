@@ -11,19 +11,17 @@ public class TestSplittingShape : MonoBehaviour
    {
       if (Input.GetKeyDown(KeyCode.Space))
       {
-         var shape = GetComponentInChildren<Shape>();
+         var shape = GetComponentInChildren<Shape2>();
 
          var pool = GetComponent<RigidBodyPool>();
 
-         var above = pool.GetBody().GetComponent<Shape>();
-         var below = pool.GetBody().GetComponent<Shape>();
+         var above = pool.GetBody().GetComponent<Shape2>();
+         var below = pool.GetBody().GetComponent<Shape2>();
 
-         var e = shape.EdgePairs[Random.Range(0, shape.EdgePairs.Count)].Edge1;
+         var f = shape.Faces[Random.Range(0, shape.Faces.Count)];
 
-         var collPoint = e.Start.Point;
-         var collNormal = e.OwnerFace.Normal;
-
-         collPoint = shape.transform.TransformPoint(collPoint);
+         var collNormal = shape.transform.TransformDirection(f.Normal);
+         var collPoint = shape.transform.TransformPoint(f.RandomEdgePoint());
 
          shape.Split(collPoint, collNormal, above, below);
 

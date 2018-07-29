@@ -85,6 +85,10 @@ public class CreateInitialShape2 : MonoBehaviour
 
       foreach (var f in shape.Faces)
          f.AddMeshAndCachePoints(pool, shape.transform);
+
+      shape.transform.position = m_Params[i].Position;
+      shape.transform.rotation = Quaternion.identity;
+      shape.GetComponent<MyRigidbody>().Drag = m_Params[i].Drag;
    }
 
    private Vector3 Normal(Point2 p1, Point2 p2, Point2 p3)

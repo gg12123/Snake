@@ -84,10 +84,12 @@ public class Point2
       else if (comp > 0.0f)
       {
          shapeAbove.AddPoint(this);
+         PlaneRelationship = PointPlaneRelationship.Above;
       }
       else
       {
          shapeBelow.AddPoint(this);
+         PlaneRelationship = PointPlaneRelationship.Below;
       }
    }
 

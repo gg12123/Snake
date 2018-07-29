@@ -23,7 +23,7 @@ public class Edge2
       {
          EdgeP1 = p;
       }
-      else if (EdgeP2 == p)
+      else if (EdgeP2 == null)
       {
          EdgeP2 = p;
       }

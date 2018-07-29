@@ -16,7 +16,7 @@ public class MyRigidbody : MonoBehaviour
    private Matrix3 m_Inertia;
    private Matrix3 m_InertiaInv;
 
-   public Shape Shape { get; private set; }
+   public Shape2 Shape { get; private set; }
 
    public Vector3 VelocityWorld { get; private set; }
    public Vector3 VelocityLocal { get { return transform.InverseTransformDirection(VelocityWorld); } }
@@ -33,7 +33,7 @@ public class MyRigidbody : MonoBehaviour
 
    private void Awake()
    {
-      Shape = GetComponent<Shape>();
+      Shape = GetComponent<Shape2>();
       m_Physics = GetComponentInParent<PhysicsManager>();
    }
 
@@ -58,7 +58,7 @@ public class MyRigidbody : MonoBehaviour
 
       for (int i = 0; i < Shape.Points.Count; i++)
       {
-         var P = Shape.Points[i];
+         var P = Shape.Points[i].Point;
 
          Ixx += (P.y * P.y + P.z * P.z);
          Iyy += (P.x * P.x + P.z * P.z);
@@ -143,8 +143,6 @@ public class MyRigidbody : MonoBehaviour
 
       var q = transform.rotation;
       transform.rotation = QAdd(q, QMul(q * AngularVelAsQuat(), 0.5f * Time.deltaTime));
-
-      Shape.UpdateWorldPoints();
    }
 
    private void DoNormalMotion()
