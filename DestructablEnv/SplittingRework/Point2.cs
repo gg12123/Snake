@@ -62,7 +62,7 @@ public class Point2
       points.Add(Point);
    }
 
-   public void Split(Vector3 P0, Vector3 n, Shape2 shapeAbove, Shape2 shapeBelow, NewPointsGetter newPoints)
+   public void Split(Vector3 P0, Vector3 n, Shape2 shapeAbove, Shape2 shapeBelow, NewPointsGetter newPoints, ref int numInside)
    {
       LinkedPoint1 = null;
       LinkedPoint2 = null;
@@ -71,7 +71,7 @@ public class Point2
 
       if (Mathf.Abs(comp) <= Utils.PointInPlaneTol)
       {
-         var newAbove = new Point2(Point);
+         var newAbove = this;
          var newBelow = new Point2(Point);
 
          newPoints.AddPoints(this, newAbove, newBelow);
@@ -80,6 +80,7 @@ public class Point2
          shapeBelow.AddPoint(newBelow);
 
          PlaneRelationship = PointPlaneRelationship.Inside;
+         numInside++;
       }
       else if (comp > 0.0f)
       {

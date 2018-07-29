@@ -67,7 +67,7 @@ public class PhysicsManager : MonoBehaviour
             m_CollNormals.Clear();
             m_CollPoints.Clear();
 
-           // b1.Shape.FindCollisions(b2.Shape, m_CollPoints, m_CollNormals);
+            b1.Shape.FindCollisions(b2.Shape, m_CollPoints, m_CollNormals);
 
             if (m_CollNormals.Count > 0)
             {

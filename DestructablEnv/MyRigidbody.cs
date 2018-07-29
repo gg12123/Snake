@@ -125,10 +125,10 @@ public class MyRigidbody : MonoBehaviour
 
    private void ApplyImpulse()
    {
-      VelocityWorld += m_Impulse.WorldImpulse / Mass; // m_Collision.GetImpulseWorld(this) / Mass;
+      VelocityWorld += m_Impulse.WorldImpulse / Mass;
 
-      var r = transform.InverseTransformPoint(m_Impulse.WorldCollisionPoint); // m_Collision.GetCollisionPointLocal(this);
-      var J = m_Impulse.LocalImpulse; // m_Collision.GetImpulseLocal(this);
+      var r = transform.InverseTransformPoint(m_Impulse.WorldCollisionPoint);
+      var J = m_Impulse.LocalImpulse;
       AngularVelocityLocal += (InertiaInverse * Vector3.Cross(r, J));
 
       UpdateTransform();
